@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.1231
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuickRMS", "QuickRMS\QuickRMS.csproj", "{9780267D-57D7-4D78-A818-DF0196E94AF0}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9780267D-57D7-4D78-A818-DF0196E94AF0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9780267D-57D7-4D78-A818-DF0196E94AF0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9780267D-57D7-4D78-A818-DF0196E94AF0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9780267D-57D7-4D78-A818-DF0196E94AF0}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {980A207B-74F7-4894-927E-2E8B1C565585}
+	EndGlobalSection
+EndGlobal
