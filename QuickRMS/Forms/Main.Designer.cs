@@ -30,73 +30,51 @@
         {
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Main));
-            this.textBox1 = new System.Windows.Forms.TextBox();
-            this.treeView1 = new System.Windows.Forms.TreeView();
-            this.cb_protocol = new System.Windows.Forms.ComboBox();
+            this.tb_search = new System.Windows.Forms.TextBox();
+            this.tv_servers = new System.Windows.Forms.TreeView();
             this.tb_server = new System.Windows.Forms.TextBox();
-            this.tb_port = new System.Windows.Forms.TextBox();
             this.pb_Search = new System.Windows.Forms.PictureBox();
             this.toolStrip_btn_Settings = new System.Windows.Forms.ToolStripDropDownButton();
-            this.toolStripSplitButton1 = new System.Windows.Forms.ToolStripSplitButton();
-            this.toolStripStatus = new System.Windows.Forms.ToolStripStatusLabel();
+            this.toolStrip_btn_check = new System.Windows.Forms.ToolStripSplitButton();
+            this.toolStripVersion = new System.Windows.Forms.ToolStripStatusLabel();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.notifyIcon1 = new System.Windows.Forms.NotifyIcon(this.components);
+            this.lb_version = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.pb_Search)).BeginInit();
             this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
-            // textBox1
+            // tb_search
             // 
-            this.textBox1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            this.tb_search.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBox1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.textBox1.Font = new System.Drawing.Font("Times New Roman", 10F);
-            this.textBox1.Location = new System.Drawing.Point(5, 8);
-            this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(239, 23);
-            this.textBox1.TabIndex = 1;
+            this.tb_search.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.tb_search.Font = new System.Drawing.Font("Times New Roman", 10F);
+            this.tb_search.Location = new System.Drawing.Point(5, 8);
+            this.tb_search.Name = "tb_search";
+            this.tb_search.Size = new System.Drawing.Size(239, 23);
+            this.tb_search.TabIndex = 1;
             // 
-            // treeView1
+            // tv_servers
             // 
-            this.treeView1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            this.tv_servers.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.treeView1.Font = new System.Drawing.Font("Times New Roman", 10F);
-            this.treeView1.Location = new System.Drawing.Point(5, 37);
-            this.treeView1.Name = "treeView1";
-            this.treeView1.Size = new System.Drawing.Size(273, 29);
-            this.treeView1.TabIndex = 3;
-            // 
-            // cb_protocol
-            // 
-            this.cb_protocol.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.cb_protocol.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cb_protocol.Font = new System.Drawing.Font("Times New Roman", 10F);
-            this.cb_protocol.FormattingEnabled = true;
-            this.cb_protocol.Location = new System.Drawing.Point(5, 67);
-            this.cb_protocol.Name = "cb_protocol";
-            this.cb_protocol.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
-            this.cb_protocol.Size = new System.Drawing.Size(71, 23);
-            this.cb_protocol.TabIndex = 4;
+            this.tv_servers.Font = new System.Drawing.Font("Times New Roman", 12F);
+            this.tv_servers.Location = new System.Drawing.Point(5, 37);
+            this.tv_servers.Name = "tv_servers";
+            this.tv_servers.Size = new System.Drawing.Size(273, 40);
+            this.tv_servers.TabIndex = 3;
+            this.tv_servers.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.tv_servers_AfterSelect);
             // 
             // tb_server
             // 
             this.tb_server.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.tb_server.Font = new System.Drawing.Font("Times New Roman", 10F);
-            this.tb_server.Location = new System.Drawing.Point(82, 67);
+            this.tb_server.Location = new System.Drawing.Point(5, 78);
             this.tb_server.Name = "tb_server";
-            this.tb_server.Size = new System.Drawing.Size(100, 23);
+            this.tb_server.Size = new System.Drawing.Size(190, 23);
             this.tb_server.TabIndex = 5;
-            // 
-            // tb_port
-            // 
-            this.tb_port.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.tb_port.Font = new System.Drawing.Font("Times New Roman", 10F);
-            this.tb_port.Location = new System.Drawing.Point(189, 67);
-            this.tb_port.Name = "tb_port";
-            this.tb_port.Size = new System.Drawing.Size(55, 23);
-            this.tb_port.TabIndex = 6;
-            this.tb_port.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.tb_port_KeyPress);
             // 
             // pb_Search
             // 
@@ -123,32 +101,33 @@
             this.toolStrip_btn_Settings.Text = "toolStrip_btn_Settings";
             this.toolStrip_btn_Settings.Click += new System.EventHandler(this.toolStrip_btn_Settings_Click);
             // 
-            // toolStripSplitButton1
+            // toolStrip_btn_check
             // 
-            this.toolStripSplitButton1.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.toolStripSplitButton1.Image = global::QuickRMS.Properties.Resources.сheck;
-            this.toolStripSplitButton1.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.toolStripSplitButton1.Name = "toolStripSplitButton1";
-            this.toolStripSplitButton1.Size = new System.Drawing.Size(32, 20);
-            this.toolStripSplitButton1.Text = "toolStripSplitButton1";
+            this.toolStrip_btn_check.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.toolStrip_btn_check.Image = global::QuickRMS.Properties.Resources.сheck;
+            this.toolStrip_btn_check.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.toolStrip_btn_check.Name = "toolStrip_btn_check";
+            this.toolStrip_btn_check.Size = new System.Drawing.Size(32, 20);
+            this.toolStrip_btn_check.Text = "toolStripSplitButton1";
+            this.toolStrip_btn_check.ButtonClick += new System.EventHandler(this.toolStrip_btn_check_ButtonClick);
             // 
-            // toolStripStatus
+            // toolStripVersion
             // 
-            this.toolStripStatus.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
-            this.toolStripStatus.Font = new System.Drawing.Font("Times New Roman", 10F);
-            this.toolStripStatus.Name = "toolStripStatus";
-            this.toolStripStatus.Size = new System.Drawing.Size(49, 17);
-            this.toolStripStatus.Text = "version";
-            this.toolStripStatus.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.toolStripVersion.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.toolStripVersion.Font = new System.Drawing.Font("Times New Roman", 10F);
+            this.toolStripVersion.Name = "toolStripVersion";
+            this.toolStripVersion.Size = new System.Drawing.Size(49, 17);
+            this.toolStripVersion.Text = "version";
+            this.toolStripVersion.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
             // statusStrip1
             // 
             this.statusStrip1.Font = new System.Drawing.Font("Times New Roman", 10F);
             this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStrip_btn_Settings,
-            this.toolStripSplitButton1,
-            this.toolStripStatus});
-            this.statusStrip1.Location = new System.Drawing.Point(5, 94);
+            this.toolStrip_btn_check,
+            this.toolStripVersion});
+            this.statusStrip1.Location = new System.Drawing.Point(5, 105);
             this.statusStrip1.Name = "statusStrip1";
             this.statusStrip1.Size = new System.Drawing.Size(274, 22);
             this.statusStrip1.TabIndex = 0;
@@ -159,18 +138,28 @@
             this.notifyIcon1.Text = "notifyIcon1";
             this.notifyIcon1.Visible = true;
             // 
+            // lb_version
+            // 
+            this.lb_version.AutoSize = true;
+            this.lb_version.Font = new System.Drawing.Font("Times New Roman", 10F);
+            this.lb_version.Location = new System.Drawing.Point(201, 81);
+            this.lb_version.Name = "lb_version";
+            this.lb_version.Size = new System.Drawing.Size(40, 16);
+            this.lb_version.TabIndex = 6;
+            this.lb_version.Text = "label1";
+            this.lb_version.DoubleClick += new System.EventHandler(this.lb_version_DoubleClick);
+            // 
             // Main
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoSize = true;
-            this.ClientSize = new System.Drawing.Size(284, 121);
-            this.Controls.Add(this.tb_port);
+            this.ClientSize = new System.Drawing.Size(284, 132);
+            this.Controls.Add(this.lb_version);
             this.Controls.Add(this.tb_server);
-            this.Controls.Add(this.cb_protocol);
-            this.Controls.Add(this.treeView1);
+            this.Controls.Add(this.tv_servers);
             this.Controls.Add(this.pb_Search);
-            this.Controls.Add(this.textBox1);
+            this.Controls.Add(this.tb_search);
             this.Controls.Add(this.statusStrip1);
             this.Cursor = System.Windows.Forms.Cursors.Arrow;
             this.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F);
@@ -181,6 +170,7 @@
             this.Name = "Main";
             this.Padding = new System.Windows.Forms.Padding(5);
             this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Show;
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Main";
             ((System.ComponentModel.ISupportInitialize)(this.pb_Search)).EndInit();
             this.statusStrip1.ResumeLayout(false);
@@ -191,16 +181,15 @@
         }
 
         #endregion
-        private System.Windows.Forms.TextBox textBox1;
+        private System.Windows.Forms.TextBox tb_search;
         private System.Windows.Forms.PictureBox pb_Search;
-        private System.Windows.Forms.TreeView treeView1;
-        private System.Windows.Forms.ComboBox cb_protocol;
+        private System.Windows.Forms.TreeView tv_servers;
         private System.Windows.Forms.TextBox tb_server;
-        private System.Windows.Forms.TextBox tb_port;
         private System.Windows.Forms.ToolStripDropDownButton toolStrip_btn_Settings;
-        private System.Windows.Forms.ToolStripSplitButton toolStripSplitButton1;
-        private System.Windows.Forms.ToolStripStatusLabel toolStripStatus;
+        private System.Windows.Forms.ToolStripSplitButton toolStrip_btn_check;
+        private System.Windows.Forms.ToolStripStatusLabel toolStripVersion;
         private System.Windows.Forms.StatusStrip statusStrip1;
         private System.Windows.Forms.NotifyIcon notifyIcon1;
+        private System.Windows.Forms.Label lb_version;
     }
 }
