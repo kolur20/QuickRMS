@@ -14,6 +14,7 @@ namespace QuickRMS.Forms
     public partial class Main : Form
     {
         static string TEXT_VERSION = "Версия: ";
+        static bool mustClose = false;
 
         internal IEnumerable<Server> Servers { get; private set; }
 
@@ -95,6 +96,24 @@ namespace QuickRMS.Forms
         {
             tb_server.ReadOnly = false;
             lb_version.Text = tb_server.Text = "";
+        }
+
+        private void notifyIcon_DoubleClick(object sender, EventArgs e)
+        {
+            Visible = !Visible;
+            
+        }
+
+        private void Main_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            Hide();
+            e.Cancel = !mustClose;
+        }
+
+        private void toolStripMenuItem_close_Click(object sender, EventArgs e)
+        {
+            mustClose = true;
+            Close();
         }
     }
 }

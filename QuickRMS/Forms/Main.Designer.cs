@@ -38,10 +38,13 @@
             this.toolStrip_btn_check = new System.Windows.Forms.ToolStripSplitButton();
             this.toolStripVersion = new System.Windows.Forms.ToolStripStatusLabel();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
-            this.notifyIcon1 = new System.Windows.Forms.NotifyIcon(this.components);
+            this.notifyIcon = new System.Windows.Forms.NotifyIcon(this.components);
             this.lb_version = new System.Windows.Forms.Label();
+            this.cms_icon = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.toolStripMenuItem_close = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.pb_Search)).BeginInit();
             this.statusStrip1.SuspendLayout();
+            this.cms_icon.SuspendLayout();
             this.SuspendLayout();
             // 
             // tb_search
@@ -133,10 +136,13 @@
             this.statusStrip1.TabIndex = 0;
             this.statusStrip1.Text = "statusStrip1";
             // 
-            // notifyIcon1
+            // notifyIcon
             // 
-            this.notifyIcon1.Text = "notifyIcon1";
-            this.notifyIcon1.Visible = true;
+            this.notifyIcon.ContextMenuStrip = this.cms_icon;
+            this.notifyIcon.Icon = ((System.Drawing.Icon)(resources.GetObject("notifyIcon.Icon")));
+            this.notifyIcon.Text = "QuickRMS";
+            this.notifyIcon.Visible = true;
+            this.notifyIcon.DoubleClick += new System.EventHandler(this.notifyIcon_DoubleClick);
             // 
             // lb_version
             // 
@@ -148,6 +154,20 @@
             this.lb_version.TabIndex = 6;
             this.lb_version.Text = "label1";
             this.lb_version.DoubleClick += new System.EventHandler(this.lb_version_DoubleClick);
+            // 
+            // cms_icon
+            // 
+            this.cms_icon.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.toolStripMenuItem_close});
+            this.cms_icon.Name = "cms_icon";
+            this.cms_icon.Size = new System.Drawing.Size(181, 48);
+            // 
+            // toolStripMenuItem_close
+            // 
+            this.toolStripMenuItem_close.Name = "toolStripMenuItem_close";
+            this.toolStripMenuItem_close.Size = new System.Drawing.Size(180, 22);
+            this.toolStripMenuItem_close.Text = "Закрыть";
+            this.toolStripMenuItem_close.Click += new System.EventHandler(this.toolStripMenuItem_close_Click);
             // 
             // Main
             // 
@@ -169,12 +189,14 @@
             this.MinimumSize = new System.Drawing.Size(300, 160);
             this.Name = "Main";
             this.Padding = new System.Windows.Forms.Padding(5);
-            this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Show;
-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
-            this.Text = "Main";
+            this.ShowInTaskbar = false;
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
+            this.Text = "QuickRMS";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Main_FormClosing);
             ((System.ComponentModel.ISupportInitialize)(this.pb_Search)).EndInit();
             this.statusStrip1.ResumeLayout(false);
             this.statusStrip1.PerformLayout();
+            this.cms_icon.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -189,7 +211,9 @@
         private System.Windows.Forms.ToolStripSplitButton toolStrip_btn_check;
         private System.Windows.Forms.ToolStripStatusLabel toolStripVersion;
         private System.Windows.Forms.StatusStrip statusStrip1;
-        private System.Windows.Forms.NotifyIcon notifyIcon1;
+        private System.Windows.Forms.NotifyIcon notifyIcon;
         private System.Windows.Forms.Label lb_version;
+        private System.Windows.Forms.ContextMenuStrip cms_icon;
+        private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem_close;
     }
 }
