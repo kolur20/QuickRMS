@@ -46,5 +46,17 @@ namespace QuickRMS.Properties {
                 this["NameDataBase"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool StructuringList {
+            get {
+                return ((bool)(this["StructuringList"]));
+            }
+            set {
+                this["StructuringList"] = value;
+            }
+        }
     }
 }

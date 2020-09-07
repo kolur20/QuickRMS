@@ -8,5 +8,8 @@
     <Setting Name="NameDataBase" Type="System.String" Scope="User">
       <Value Profile="(Default)">entity</Value>
     </Setting>
+    <Setting Name="StructuringList" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

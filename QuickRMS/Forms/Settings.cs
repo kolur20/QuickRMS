@@ -21,7 +21,7 @@ namespace QuickRMS.Forms
 
             btn_help_Click(null, null);
 
-            pb_load.Enabled = pb_load.Visible = false;
+            
 
         }
 
@@ -94,7 +94,7 @@ namespace QuickRMS.Forms
                     {
 
                         killServers.Add(server.Name);
-                        tb_instr.Text += $"Ошибка: {server.Name}\n";
+                        tb_instr.Text += string.Format($"Ошибка: {server.Name} \n");
                     }
                 }
 
@@ -106,13 +106,13 @@ namespace QuickRMS.Forms
                     SqlManager.GetInstance().RemoveAll();
                 //запись новых данных в бд
                 SqlManager.GetInstance().Insert(servers);
-                tb_instr.Text += $"Импортировано: {servers.Count} из {servers.Count + killServers.Count}\n";
+                tb_instr.Text += $"Импортировано: {servers.Count} из {servers.Count + killServers.Count} \n";
 
                 bw_animation.CancelAsync();
             }
             catch (Exception ex)
             {
-                tb_instr.Text += $"Фатальная ошибка при импорте\n";
+                tb_instr.Text += $"Фатальная ошибка при импорте \n";
                 MessageBox.Show(ex.Message, "Ошибка");
                 bw_animation.CancelAsync();
                 return;
@@ -145,14 +145,14 @@ namespace QuickRMS.Forms
 
                 var csv = new CsvManager();
                 csv.Export(file, SqlManager.GetInstance().GetData());
-                tb_instr.Text += $"Успешный экспорт файла {file}\n";
+                tb_instr.Text += $"Успешный экспорт файла {file} \n";
                 
                 bw_animation.CancelAsync();
             }
             catch (Exception ex)
             {
                 
-                tb_instr.Text += $"Ошибка при экспорте файла {file}\n";
+                tb_instr.Text += $"Ошибка при экспорте файла {file} \n";
                 MessageBox.Show(ex.Message, "Ошибка");
 
                 bw_animation.CancelAsync();
@@ -171,22 +171,18 @@ namespace QuickRMS.Forms
 
         private void bw_animation_DoWork(object sender, DoWorkEventArgs e)
         {
-            
-            while (!bw_animation.CancellationPending)
-            {
-                PictureAnimation(true);
-                //for (var i=0; i < 1000; i++) { }
-            }
-            PictureAnimation(false);
+            var wait = new Wait();
+            wait.Show();
+            wait.Focus();
+
+            while (!bw_animation.CancellationPending) { }
+            wait.Close();
         }
 
-        private void PictureAnimation(bool animation)
+        private void btn_reloadversion_Click(object sender, EventArgs e)
         {
-
-            if (InvokeRequired)
-                Invoke((Action<bool>)PictureAnimation, animation);
-            else
-                pb_load.Enabled = pb_load.Visible = animation;
+            var wait = new Wait();
+            wait.Show();
         }
     }
 }

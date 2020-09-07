@@ -23,7 +23,7 @@ namespace QuickRMS.Forms
             InitializeComponent();
             toolStripVersion.Text = TEXT_VERSION;
             lb_version.Text = "";
-
+            TopMost = true;
             try
             {
 
@@ -49,9 +49,34 @@ namespace QuickRMS.Forms
         {
             Servers = SqlManager.GetInstance().GetData();
             tv_servers.Nodes.Clear();
-            foreach (var name in Servers)
+
+            //1 - ранжирование и объединение 
+            //0 - вывод подряд
+            if (!Properties.Settings.Default.StructuringList)
+                foreach (var name in Servers)
+                {
+                    tv_servers.Nodes.Add(new TreeNode(name.Name));
+                }
+            else
             {
-                tv_servers.Nodes.Add(new TreeNode(name.Name));
+                var listServers = Servers.ToList();                             //создание переменной для контроля добавления всех серверов
+                var Chains = listServers.Where(serv => serv.isChain == true).ToList();   //выборка чейнов
+                foreach (var chain in Chains)
+                {
+                    tv_servers.Nodes.Add(new TreeNode(chain.Name));             //добавление чейнов
+                    listServers.Remove(chain);                                  //удаление добавленного сервера из списка
+                    var rms = listServers.Where(serv => serv.coConnection.Length > 5 && chain.Connection.Contains(serv.coConnection)).ToList();  //выборка всех рмс данного чейна
+                    foreach (var serv in rms)
+                    {
+                        tv_servers.Nodes[tv_servers.Nodes.Count - 1].Nodes.Add(new TreeNode(serv.Name));                //добавление рмсов данного чейна
+                        listServers.Remove(serv);                               //удаление добавленного сервера из списка
+                    }
+                }
+                foreach (var serv in listServers)
+                {
+                    tv_servers.Nodes.Add(new TreeNode(serv.Name));             //добавление оставшихся рмсов
+                }
+
             }
         }
         private void tb_port_KeyPress(object sender, KeyPressEventArgs e)
@@ -100,13 +125,13 @@ namespace QuickRMS.Forms
 
         private void notifyIcon_DoubleClick(object sender, EventArgs e)
         {
-            Visible = !Visible;
+            TopMost = Visible = !Visible;
             
         }
 
         private void Main_FormClosing(object sender, FormClosingEventArgs e)
         {
-            Hide();
+            TopMost = Visible = !Visible;
             e.Cancel = !mustClose;
         }
 
@@ -115,5 +140,46 @@ namespace QuickRMS.Forms
             mustClose = true;
             Close();
         }
+
+        #region SEARCH TREEVIEW
+
+        private void pb_Search_Click(object sender, EventArgs e)
+        {
+            tb_search.Text = "";
+            ReloadTreeView();
+        }
+
+        private void tb_search_KeyPress(object sender, KeyPressEventArgs e)
+        {
+           
+        }
+       
+
+        private void tb_search_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (tb_search.Text.Length == 0)
+            {
+                ReloadTreeView();
+            }
+            else if (tb_search.Text.Length > 1)
+            {
+                //вариант без пробелов
+                //tv_servers.Nodes.Clear();
+                //tv_servers.Nodes.AddRange((from data in Servers where data.Name.ToLower().Contains(tb_search.Text.ToLower()) select new TreeNode(data.Name)).ToArray());
+
+                //вариант с пробелами
+                var space = tb_search.Text.ToLower().Split(' ');
+                var listServer = Servers.Select(data => data.Name).ToList();
+                tv_servers.Nodes.Clear();
+                foreach (var s in space)
+                {
+                    listServer = listServer.Where(data => data.ToLower().Contains(s)).ToList();
+                }
+                tv_servers.Nodes.AddRange((from data in listServer select new TreeNode(data)).ToArray());
+
+            }
+        } 
+        
+        #endregion
     }
 }

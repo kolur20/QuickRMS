@@ -31,7 +31,22 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Settings));
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
+            this.btn_insert = new System.Windows.Forms.Button();
+            this.cb_chain = new System.Windows.Forms.CheckBox();
+            this.tb_co = new System.Windows.Forms.TextBox();
+            this.label4 = new System.Windows.Forms.Label();
+            this.btn_check = new System.Windows.Forms.Button();
+            this.tb_version = new System.Windows.Forms.TextBox();
+            this.label3 = new System.Windows.Forms.Label();
+            this.tb_strConnection = new System.Windows.Forms.TextBox();
+            this.label2 = new System.Windows.Forms.Label();
+            this.label1 = new System.Windows.Forms.Label();
+            this.tb_nameConnection = new System.Windows.Forms.TextBox();
             this.tabPage2 = new System.Windows.Forms.TabPage();
+            this.btn_reloadversion = new System.Windows.Forms.Button();
+            this.btn_SaveDB = new System.Windows.Forms.Button();
+            this.tb_namedb = new System.Windows.Forms.TextBox();
+            this.label6 = new System.Windows.Forms.Label();
             this.tabPage3 = new System.Windows.Forms.TabPage();
             this.btn_help = new System.Windows.Forms.Button();
             this.tb_instr = new System.Windows.Forms.TextBox();
@@ -41,28 +56,11 @@
             this.label5 = new System.Windows.Forms.Label();
             this.btn_import = new System.Windows.Forms.Button();
             this.cb_removeAll = new System.Windows.Forms.CheckBox();
-            this.btn_reloadversion = new System.Windows.Forms.Button();
-            this.btn_SaveDB = new System.Windows.Forms.Button();
-            this.tb_namedb = new System.Windows.Forms.TextBox();
-            this.label6 = new System.Windows.Forms.Label();
-            this.cb_chain = new System.Windows.Forms.CheckBox();
-            this.tb_co = new System.Windows.Forms.TextBox();
-            this.label4 = new System.Windows.Forms.Label();
-            this.btn_insert = new System.Windows.Forms.Button();
-            this.btn_check = new System.Windows.Forms.Button();
-            this.tb_version = new System.Windows.Forms.TextBox();
-            this.label3 = new System.Windows.Forms.Label();
-            this.tb_strConnection = new System.Windows.Forms.TextBox();
-            this.label2 = new System.Windows.Forms.Label();
-            this.label1 = new System.Windows.Forms.Label();
-            this.tb_nameConnection = new System.Windows.Forms.TextBox();
-            this.pb_load = new System.Windows.Forms.PictureBox();
             this.bw_animation = new System.ComponentModel.BackgroundWorker();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
             this.tabPage3.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pb_load)).BeginInit();
             this.SuspendLayout();
             // 
             // tabControl1
@@ -70,11 +68,11 @@
             this.tabControl1.Controls.Add(this.tabPage1);
             this.tabControl1.Controls.Add(this.tabPage2);
             this.tabControl1.Controls.Add(this.tabPage3);
-            this.tabControl1.Dock = System.Windows.Forms.DockStyle.Top;
+            this.tabControl1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tabControl1.Location = new System.Drawing.Point(0, 0);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(724, 320);
+            this.tabControl1.Size = new System.Drawing.Size(724, 328);
             this.tabControl1.TabIndex = 3;
             // 
             // tabPage1
@@ -94,9 +92,105 @@
             this.tabPage1.Location = new System.Drawing.Point(4, 24);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(716, 292);
+            this.tabPage1.Size = new System.Drawing.Size(716, 300);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Новое подключение";
+            // 
+            // btn_insert
+            // 
+            this.btn_insert.Location = new System.Drawing.Point(604, 96);
+            this.btn_insert.Name = "btn_insert";
+            this.btn_insert.Size = new System.Drawing.Size(103, 40);
+            this.btn_insert.TabIndex = 18;
+            this.btn_insert.Text = "Добавить";
+            this.btn_insert.UseVisualStyleBackColor = true;
+            this.btn_insert.Click += new System.EventHandler(this.btn_insert_Click);
+            // 
+            // cb_chain
+            // 
+            this.cb_chain.AutoSize = true;
+            this.cb_chain.Location = new System.Drawing.Point(326, 96);
+            this.cb_chain.Name = "cb_chain";
+            this.cb_chain.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
+            this.cb_chain.Size = new System.Drawing.Size(56, 20);
+            this.cb_chain.TabIndex = 21;
+            this.cb_chain.Text = "Чейн";
+            this.cb_chain.UseVisualStyleBackColor = true;
+            // 
+            // tb_co
+            // 
+            this.tb_co.Location = new System.Drawing.Point(143, 67);
+            this.tb_co.Name = "tb_co";
+            this.tb_co.Size = new System.Drawing.Size(564, 23);
+            this.tb_co.TabIndex = 20;
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(8, 70);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(121, 16);
+            this.label4.TabIndex = 19;
+            this.label4.Text = "Подключение к ЦО";
+            // 
+            // btn_check
+            // 
+            this.btn_check.Location = new System.Drawing.Point(480, 96);
+            this.btn_check.Name = "btn_check";
+            this.btn_check.Size = new System.Drawing.Size(103, 40);
+            this.btn_check.TabIndex = 17;
+            this.btn_check.Text = "Проверить";
+            this.btn_check.UseVisualStyleBackColor = true;
+            this.btn_check.Click += new System.EventHandler(this.btn_check_Click);
+            // 
+            // tb_version
+            // 
+            this.tb_version.Location = new System.Drawing.Point(143, 96);
+            this.tb_version.Name = "tb_version";
+            this.tb_version.ReadOnly = true;
+            this.tb_version.Size = new System.Drawing.Size(149, 23);
+            this.tb_version.TabIndex = 16;
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(8, 99);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(49, 16);
+            this.label3.TabIndex = 15;
+            this.label3.Text = "Версия";
+            // 
+            // tb_strConnection
+            // 
+            this.tb_strConnection.Location = new System.Drawing.Point(143, 38);
+            this.tb_strConnection.Name = "tb_strConnection";
+            this.tb_strConnection.Size = new System.Drawing.Size(564, 23);
+            this.tb_strConnection.TabIndex = 14;
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(8, 41);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(130, 16);
+            this.label2.TabIndex = 13;
+            this.label2.Text = "Строка подключения";
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(8, 13);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(113, 16);
+            this.label1.TabIndex = 12;
+            this.label1.Text = "Имя подключения";
+            // 
+            // tb_nameConnection
+            // 
+            this.tb_nameConnection.Location = new System.Drawing.Point(143, 10);
+            this.tb_nameConnection.Name = "tb_nameConnection";
+            this.tb_nameConnection.Size = new System.Drawing.Size(564, 23);
+            this.tb_nameConnection.TabIndex = 11;
             // 
             // tabPage2
             // 
@@ -108,9 +202,45 @@
             this.tabPage2.Location = new System.Drawing.Point(4, 24);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(716, 292);
+            this.tabPage2.Size = new System.Drawing.Size(716, 300);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "Базы данных";
+            // 
+            // btn_reloadversion
+            // 
+            this.btn_reloadversion.Location = new System.Drawing.Point(481, 67);
+            this.btn_reloadversion.Name = "btn_reloadversion";
+            this.btn_reloadversion.Size = new System.Drawing.Size(227, 36);
+            this.btn_reloadversion.TabIndex = 21;
+            this.btn_reloadversion.Text = "Обновить все версии";
+            this.btn_reloadversion.UseVisualStyleBackColor = true;
+            this.btn_reloadversion.Click += new System.EventHandler(this.btn_reloadversion_Click);
+            // 
+            // btn_SaveDB
+            // 
+            this.btn_SaveDB.Location = new System.Drawing.Point(581, 14);
+            this.btn_SaveDB.Name = "btn_SaveDB";
+            this.btn_SaveDB.Size = new System.Drawing.Size(127, 36);
+            this.btn_SaveDB.TabIndex = 20;
+            this.btn_SaveDB.Text = "Сохранить";
+            this.btn_SaveDB.UseVisualStyleBackColor = true;
+            this.btn_SaveDB.Click += new System.EventHandler(this.btn_SaveDB_Click);
+            // 
+            // tb_namedb
+            // 
+            this.tb_namedb.Location = new System.Drawing.Point(327, 22);
+            this.tb_namedb.Name = "tb_namedb";
+            this.tb_namedb.Size = new System.Drawing.Size(204, 23);
+            this.tb_namedb.TabIndex = 19;
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(8, 22);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(313, 16);
+            this.label6.TabIndex = 18;
+            this.label6.Text = "Имя базы данных (применится после перезагрузки)";
             // 
             // tabPage3
             // 
@@ -125,7 +255,7 @@
             this.tabPage3.Controls.Add(this.cb_removeAll);
             this.tabPage3.Location = new System.Drawing.Point(4, 24);
             this.tabPage3.Name = "tabPage3";
-            this.tabPage3.Size = new System.Drawing.Size(716, 292);
+            this.tabPage3.Size = new System.Drawing.Size(716, 300);
             this.tabPage3.TabIndex = 2;
             this.tabPage3.Text = "Импорт/Экспорт";
             // 
@@ -205,149 +335,6 @@
             this.cb_removeAll.Text = "Удалить все данные перед импортом";
             this.cb_removeAll.UseVisualStyleBackColor = true;
             // 
-            // btn_reloadversion
-            // 
-            this.btn_reloadversion.Location = new System.Drawing.Point(481, 67);
-            this.btn_reloadversion.Name = "btn_reloadversion";
-            this.btn_reloadversion.Size = new System.Drawing.Size(227, 36);
-            this.btn_reloadversion.TabIndex = 21;
-            this.btn_reloadversion.Text = "Обновить все версии";
-            this.btn_reloadversion.UseVisualStyleBackColor = true;
-            // 
-            // btn_SaveDB
-            // 
-            this.btn_SaveDB.Location = new System.Drawing.Point(581, 14);
-            this.btn_SaveDB.Name = "btn_SaveDB";
-            this.btn_SaveDB.Size = new System.Drawing.Size(127, 36);
-            this.btn_SaveDB.TabIndex = 20;
-            this.btn_SaveDB.Text = "Сохранить";
-            this.btn_SaveDB.UseVisualStyleBackColor = true;
-            this.btn_SaveDB.Click += new System.EventHandler(this.btn_SaveDB_Click);
-            // 
-            // tb_namedb
-            // 
-            this.tb_namedb.Location = new System.Drawing.Point(327, 22);
-            this.tb_namedb.Name = "tb_namedb";
-            this.tb_namedb.Size = new System.Drawing.Size(204, 23);
-            this.tb_namedb.TabIndex = 19;
-            // 
-            // label6
-            // 
-            this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(8, 22);
-            this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(313, 16);
-            this.label6.TabIndex = 18;
-            this.label6.Text = "Имя базы данных (применится после перезагрузки)";
-            // 
-            // cb_chain
-            // 
-            this.cb_chain.AutoSize = true;
-            this.cb_chain.Location = new System.Drawing.Point(326, 96);
-            this.cb_chain.Name = "cb_chain";
-            this.cb_chain.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
-            this.cb_chain.Size = new System.Drawing.Size(56, 20);
-            this.cb_chain.TabIndex = 21;
-            this.cb_chain.Text = "Чейн";
-            this.cb_chain.UseVisualStyleBackColor = true;
-            // 
-            // tb_co
-            // 
-            this.tb_co.Location = new System.Drawing.Point(143, 67);
-            this.tb_co.Name = "tb_co";
-            this.tb_co.Size = new System.Drawing.Size(564, 23);
-            this.tb_co.TabIndex = 20;
-            // 
-            // label4
-            // 
-            this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(8, 70);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(121, 16);
-            this.label4.TabIndex = 19;
-            this.label4.Text = "Подключение к ЦО";
-            // 
-            // btn_insert
-            // 
-            this.btn_insert.Location = new System.Drawing.Point(604, 96);
-            this.btn_insert.Name = "btn_insert";
-            this.btn_insert.Size = new System.Drawing.Size(103, 40);
-            this.btn_insert.TabIndex = 18;
-            this.btn_insert.Text = "Добавить";
-            this.btn_insert.UseVisualStyleBackColor = true;
-            this.btn_insert.Click += new System.EventHandler(this.btn_insert_Click);
-            // 
-            // btn_check
-            // 
-            this.btn_check.Location = new System.Drawing.Point(480, 96);
-            this.btn_check.Name = "btn_check";
-            this.btn_check.Size = new System.Drawing.Size(103, 40);
-            this.btn_check.TabIndex = 17;
-            this.btn_check.Text = "Проверить";
-            this.btn_check.UseVisualStyleBackColor = true;
-            this.btn_check.Click += new System.EventHandler(this.btn_check_Click);
-            // 
-            // tb_version
-            // 
-            this.tb_version.Location = new System.Drawing.Point(143, 96);
-            this.tb_version.Name = "tb_version";
-            this.tb_version.ReadOnly = true;
-            this.tb_version.Size = new System.Drawing.Size(149, 23);
-            this.tb_version.TabIndex = 16;
-            // 
-            // label3
-            // 
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(8, 99);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(49, 16);
-            this.label3.TabIndex = 15;
-            this.label3.Text = "Версия";
-            // 
-            // tb_strConnection
-            // 
-            this.tb_strConnection.Location = new System.Drawing.Point(143, 38);
-            this.tb_strConnection.Name = "tb_strConnection";
-            this.tb_strConnection.Size = new System.Drawing.Size(564, 23);
-            this.tb_strConnection.TabIndex = 14;
-            // 
-            // label2
-            // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(8, 41);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(130, 16);
-            this.label2.TabIndex = 13;
-            this.label2.Text = "Строка подключения";
-            // 
-            // label1
-            // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(8, 13);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(113, 16);
-            this.label1.TabIndex = 12;
-            this.label1.Text = "Имя подключения";
-            // 
-            // tb_nameConnection
-            // 
-            this.tb_nameConnection.Location = new System.Drawing.Point(143, 10);
-            this.tb_nameConnection.Name = "tb_nameConnection";
-            this.tb_nameConnection.Size = new System.Drawing.Size(564, 23);
-            this.tb_nameConnection.TabIndex = 11;
-            // 
-            // pb_load
-            // 
-            this.pb_load.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.pb_load.Enabled = false;
-            this.pb_load.Image = global::QuickRMS.Properties.Resources.loading_bar;
-            this.pb_load.Location = new System.Drawing.Point(0, 319);
-            this.pb_load.Name = "pb_load";
-            this.pb_load.Size = new System.Drawing.Size(724, 50);
-            this.pb_load.SizeMode = System.Windows.Forms.PictureBoxSizeMode.CenterImage;
-            this.pb_load.TabIndex = 4;
-            this.pb_load.TabStop = false;
-            // 
             // bw_animation
             // 
             this.bw_animation.WorkerSupportsCancellation = true;
@@ -357,13 +344,13 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(724, 369);
-            this.Controls.Add(this.pb_load);
+            this.ClientSize = new System.Drawing.Size(724, 328);
             this.Controls.Add(this.tabControl1);
             this.Font = new System.Drawing.Font("Times New Roman", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "Settings";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Настройки";
             this.tabControl1.ResumeLayout(false);
             this.tabPage1.ResumeLayout(false);
@@ -372,7 +359,6 @@
             this.tabPage2.PerformLayout();
             this.tabPage3.ResumeLayout(false);
             this.tabPage3.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pb_load)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -406,7 +392,6 @@
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.Button btn_import;
         private System.Windows.Forms.CheckBox cb_removeAll;
-        private System.Windows.Forms.PictureBox pb_load;
         private System.ComponentModel.BackgroundWorker bw_animation;
     }
 }

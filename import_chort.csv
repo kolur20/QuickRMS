@@ -1,4 +1,20 @@
 ﻿NAME;CONNECTION;CHAIN;CO_CONNECTION;VERSION
-Сапора ЦО;sap57904.54fz.club:80/resto;1;;
-Дольче;sap57910.54fz.club:80/resto;0;sap57904.54fz.club:9080/resto;
-40 Футов;40futov42204.54fz.club:80/resto;0;;
+Сапора Итальяно ЦО;sap57904.54fz.club:80/resto;1;;
+Сапора итальяно Casa Italia Буденовский 49/94 (Астор)  ООО Супер Паста;sap57911.54fz.club:80/resto;0;sap57904.54fz.club:80/resto;
+Сапора Итальяно Горизонт Нагибина, 32д  ООО Фуд Лидер;sap57908.54fz.club:80/resto;0;sap57904.54fz.club:80/resto;
+Сапора Итальяно Ла Каффетерия Соколова, 17  ООО Лана;sap57912.54fz.club:80/resto;0;sap57904.54fz.club:80/resto;
+Сапора итальяно Магазин Мечникова,75А ИП Дудников;sap57906.54fz.club:80/resto;0;sap57904.54fz.club:80/resto;
+Сапора итальяно доставка кц;sap57913.54fz.club:80/resto;0;sap57904.54fz.club:80/resto;
+Сапора Итальяно Просекко Бар Горизонт Нагибина, 32д ООО Банкет Холл;sap57910.54fz.club:80/resto;0;sap57904.54fz.club:80/resto;
+Сапора Итальяно Сапора Береговая, 12 ИП Кейян;sap57907.54fz.club:80/resto;0;sap57904.54fz.club:80/resto;
+Сапора Итальяно Таганрог ООО БРИЗ;sap57909.54fz.club:80/resto;0;sap57904.54fz.club:80/resto;
+Сапора Итальяно ул.Мечникова, 75 А ООО Формула Успеха;sap57905.54fz.club:80/resto;0;sap57904.54fz.club:80/resto;
+Сапора Итальяно (Дольче) Dolce Sapore Горизонт Нагибина, 32д ООО Банкет Холл;sap57910.54fz.club:80/resto;0;sap57904.54fz.club:80/resto;
+Бейкери Проджект;antouan.54fz.club:80/resto;0;;
+Бар Пятница;pyatniza.54fz.club:80/resto;0;;
+GoldenHosre;goldenhorse.54fz.club:80/resto;0;;
+SmokeLab;smokelabpurple.54fz.club:80/resto;0;;
+ЕдаВсегда Красный Котельщик;tkz-evdavsegda.54fz.club;0;;
+ЕдаВсегда Таганрог;tg-evdavsegda.54fz.club:80/resto;0;edavsegdachain.54fz.club:80/resto;
+ЕдаВсегда;edavsegda.54fz.club:80/resto;0;edavsegdachain.54fz.club:80/resto;
+ЕдаВсегда ЦО;edavsegdachain.54fz.club:80/resto;1;;
