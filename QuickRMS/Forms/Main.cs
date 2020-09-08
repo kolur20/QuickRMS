@@ -36,11 +36,13 @@ namespace QuickRMS.Forms
         private void toolStrip_btn_Settings_Click(object sender, EventArgs e)
         {
             var formsettings = new Settings();
+            TopMost = false;
             formsettings.ShowDialog();
             try
             {
 
                 ReloadTreeView();
+                TopMost = true;
             }
             catch (Exception ex)
             { MessageBox.Show(ex.Message, "Ошибка"); }

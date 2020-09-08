@@ -31,6 +31,7 @@
             this.pb_wait = new System.Windows.Forms.PictureBox();
             ((System.ComponentModel.ISupportInitialize)(this.pb_wait)).BeginInit();
             this.SuspendLayout();
+            
             // 
             // pb_wait
             // 
@@ -41,6 +42,8 @@
             this.pb_wait.Size = new System.Drawing.Size(434, 50);
             this.pb_wait.TabIndex = 0;
             this.pb_wait.TabStop = false;
+            this.pb_wait.Enabled = true;
+            this.pb_wait.Visible = true;
             // 
             // Wait
             // 
@@ -53,7 +56,7 @@
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Подождите";
             ((System.ComponentModel.ISupportInitialize)(this.pb_wait)).EndInit();
-            this.ResumeLayout(false);
+            this.ResumeLayout(true);
 
         }
 

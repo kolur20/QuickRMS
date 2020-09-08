@@ -181,8 +181,8 @@ namespace QuickRMS.Forms
 
         private void btn_reloadversion_Click(object sender, EventArgs e)
         {
-            var wait = new Wait();
-            wait.Show();
+           
+            
         }
     }
 }
