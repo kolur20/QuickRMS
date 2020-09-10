@@ -58,5 +58,29 @@ namespace QuickRMS.Properties {
                 this["StructuringList"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("C:\\iiko")]
+        public string PathRMS {
+            get {
+                return ((string)(this["PathRMS"]));
+            }
+            set {
+                this["PathRMS"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("C:\\iiko\\Office.ico")]
+        public string PathRMSico {
+            get {
+                return ((string)(this["PathRMSico"]));
+            }
+            set {
+                this["PathRMSico"] = value;
+            }
+        }
     }
 }

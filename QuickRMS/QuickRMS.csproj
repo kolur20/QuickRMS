@@ -36,6 +36,9 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>clock_fast_icon_137750.ico</ApplicationIcon>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="CsvHelper, Version=15.0.0.0, Culture=neutral, PublicKeyToken=8c4959082be5c823, processorArchitecture=MSIL">
       <HintPath>..\packages\CsvHelper.15.0.5\lib\net45\CsvHelper.dll</HintPath>
@@ -85,6 +88,7 @@
   <ItemGroup>
     <Compile Include="Classes\ConnectionManager.cs" />
     <Compile Include="Classes\CsvManager.cs" />
+    <Compile Include="Classes\RMSico.cs" />
     <Compile Include="Classes\Server.cs" />
     <Compile Include="Classes\SqlManager.cs" />
     <Compile Include="Forms\Main.cs">
@@ -140,8 +144,19 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
+    <COMReference Include="IWshRuntimeLibrary">
+      <Guid>{F935DC20-1CF0-11D0-ADB9-00C04FD58A0B}</Guid>
+      <VersionMajor>1</VersionMajor>
+      <VersionMinor>0</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>tlbimp</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </COMReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="clock_fast_icon_137750.ico" />
     <Content Include="info.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

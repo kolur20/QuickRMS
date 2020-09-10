@@ -11,5 +11,11 @@
     <Setting Name="StructuringList" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>
     </Setting>
+    <Setting Name="PathRMS" Type="System.String" Scope="User">
+      <Value Profile="(Default)">C:\iiko</Value>
+    </Setting>
+    <Setting Name="PathRMSico" Type="System.String" Scope="User">
+      <Value Profile="(Default)">C:\iiko\Office.ico</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

@@ -155,6 +155,29 @@ namespace QuickRMS.Classes
                 throw ex;
             }
         }
+
+        public void UpdateVersions(ICollection<Server> servers)
+        {
+            try
+            {
+                if (connection.State != System.Data.ConnectionState.Open)
+                    connection.Open();
+                command = new SQLiteCommand(connection);
+                command.CommandText = "";
+                foreach (var server in servers)
+                {
+                    command.CommandText += $@"UPDATE Servers SET version = '{server.Version}' WHERE name = '{server.Name}';";
+                    
+                }
+                command.ExecuteNonQuery();
+                connection.Close();
+            }
+            catch (Exception ex)
+            {
+                connection.Close();
+                throw ex;
+            }
+        }
         
     }
 }

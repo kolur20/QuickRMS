@@ -48,6 +48,7 @@
             this.tb_namedb = new System.Windows.Forms.TextBox();
             this.label6 = new System.Windows.Forms.Label();
             this.tabPage3 = new System.Windows.Forms.TabPage();
+            this.cb_safeImport = new System.Windows.Forms.CheckBox();
             this.btn_help = new System.Windows.Forms.Button();
             this.tb_instr = new System.Windows.Forms.TextBox();
             this.tb_importfile = new System.Windows.Forms.TextBox();
@@ -57,10 +58,21 @@
             this.btn_import = new System.Windows.Forms.Button();
             this.cb_removeAll = new System.Windows.Forms.CheckBox();
             this.bw_animation = new System.ComponentModel.BackgroundWorker();
+            this.tabPage4 = new System.Windows.Forms.TabPage();
+            this.label7 = new System.Windows.Forms.Label();
+            this.tb_rms = new System.Windows.Forms.TextBox();
+            this.btn_opn_rms = new System.Windows.Forms.Button();
+            this.tb_rms_ico = new System.Windows.Forms.TextBox();
+            this.label8 = new System.Windows.Forms.Label();
+            this.btn_opn_rms_ico = new System.Windows.Forms.Button();
+            this.btn_save_ico = new System.Windows.Forms.Button();
+            this.btn_create_ico = new System.Windows.Forms.Button();
+            this.checkBox1 = new System.Windows.Forms.CheckBox();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
             this.tabPage3.SuspendLayout();
+            this.tabPage4.SuspendLayout();
             this.SuspendLayout();
             // 
             // tabControl1
@@ -68,6 +80,7 @@
             this.tabControl1.Controls.Add(this.tabPage1);
             this.tabControl1.Controls.Add(this.tabPage2);
             this.tabControl1.Controls.Add(this.tabPage3);
+            this.tabControl1.Controls.Add(this.tabPage4);
             this.tabControl1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tabControl1.Location = new System.Drawing.Point(0, 0);
             this.tabControl1.Name = "tabControl1";
@@ -245,6 +258,7 @@
             // tabPage3
             // 
             this.tabPage3.BackColor = System.Drawing.Color.WhiteSmoke;
+            this.tabPage3.Controls.Add(this.cb_safeImport);
             this.tabPage3.Controls.Add(this.btn_help);
             this.tabPage3.Controls.Add(this.tb_instr);
             this.tabPage3.Controls.Add(this.tb_importfile);
@@ -258,6 +272,17 @@
             this.tabPage3.Size = new System.Drawing.Size(716, 300);
             this.tabPage3.TabIndex = 2;
             this.tabPage3.Text = "Импорт/Экспорт";
+            // 
+            // cb_safeImport
+            // 
+            this.cb_safeImport.AutoSize = true;
+            this.cb_safeImport.Location = new System.Drawing.Point(416, 62);
+            this.cb_safeImport.Name = "cb_safeImport";
+            this.cb_safeImport.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
+            this.cb_safeImport.Size = new System.Drawing.Size(161, 20);
+            this.cb_safeImport.TabIndex = 26;
+            this.cb_safeImport.Text = "Умный импорт данных";
+            this.cb_safeImport.UseVisualStyleBackColor = true;
             // 
             // btn_help
             // 
@@ -340,6 +365,106 @@
             this.bw_animation.WorkerSupportsCancellation = true;
             this.bw_animation.DoWork += new System.ComponentModel.DoWorkEventHandler(this.bw_animation_DoWork);
             // 
+            // tabPage4
+            // 
+            this.tabPage4.BackColor = System.Drawing.Color.WhiteSmoke;
+            this.tabPage4.Controls.Add(this.checkBox1);
+            this.tabPage4.Controls.Add(this.btn_create_ico);
+            this.tabPage4.Controls.Add(this.btn_save_ico);
+            this.tabPage4.Controls.Add(this.btn_opn_rms_ico);
+            this.tabPage4.Controls.Add(this.tb_rms_ico);
+            this.tabPage4.Controls.Add(this.label8);
+            this.tabPage4.Controls.Add(this.btn_opn_rms);
+            this.tabPage4.Controls.Add(this.tb_rms);
+            this.tabPage4.Controls.Add(this.label7);
+            this.tabPage4.Location = new System.Drawing.Point(4, 24);
+            this.tabPage4.Name = "tabPage4";
+            this.tabPage4.Size = new System.Drawing.Size(716, 300);
+            this.tabPage4.TabIndex = 3;
+            this.tabPage4.Text = "Ярлыки";
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(9, 15);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(130, 16);
+            this.label7.TabIndex = 0;
+            this.label7.Text = "Расположение бэков";
+            // 
+            // tb_rms
+            // 
+            this.tb_rms.Location = new System.Drawing.Point(12, 35);
+            this.tb_rms.Name = "tb_rms";
+            this.tb_rms.Size = new System.Drawing.Size(586, 23);
+            this.tb_rms.TabIndex = 1;
+            // 
+            // btn_opn_rms
+            // 
+            this.btn_opn_rms.Location = new System.Drawing.Point(604, 25);
+            this.btn_opn_rms.Name = "btn_opn_rms";
+            this.btn_opn_rms.Size = new System.Drawing.Size(104, 40);
+            this.btn_opn_rms.TabIndex = 2;
+            this.btn_opn_rms.Text = "Обзор";
+            this.btn_opn_rms.UseVisualStyleBackColor = true;
+            this.btn_opn_rms.Click += new System.EventHandler(this.btn_opn_rms_Click);
+            // 
+            // tb_rms_ico
+            // 
+            this.tb_rms_ico.Location = new System.Drawing.Point(12, 81);
+            this.tb_rms_ico.Name = "tb_rms_ico";
+            this.tb_rms_ico.Size = new System.Drawing.Size(586, 23);
+            this.tb_rms_ico.TabIndex = 4;
+            // 
+            // label8
+            // 
+            this.label8.AutoSize = true;
+            this.label8.Location = new System.Drawing.Point(9, 61);
+            this.label8.Name = "label8";
+            this.label8.Size = new System.Drawing.Size(146, 16);
+            this.label8.TabIndex = 3;
+            this.label8.Text = "Расположение ярлыков";
+            // 
+            // btn_opn_rms_ico
+            // 
+            this.btn_opn_rms_ico.Location = new System.Drawing.Point(604, 71);
+            this.btn_opn_rms_ico.Name = "btn_opn_rms_ico";
+            this.btn_opn_rms_ico.Size = new System.Drawing.Size(104, 40);
+            this.btn_opn_rms_ico.TabIndex = 5;
+            this.btn_opn_rms_ico.Text = "Обзор";
+            this.btn_opn_rms_ico.UseVisualStyleBackColor = true;
+            this.btn_opn_rms_ico.Click += new System.EventHandler(this.btn_opn_rms_ico_Click);
+            // 
+            // btn_save_ico
+            // 
+            this.btn_save_ico.Location = new System.Drawing.Point(604, 117);
+            this.btn_save_ico.Name = "btn_save_ico";
+            this.btn_save_ico.Size = new System.Drawing.Size(104, 40);
+            this.btn_save_ico.TabIndex = 6;
+            this.btn_save_ico.Text = "Сохранить";
+            this.btn_save_ico.UseVisualStyleBackColor = true;
+            this.btn_save_ico.Click += new System.EventHandler(this.btn_save_ico_Click);
+            // 
+            // btn_create_ico
+            // 
+            this.btn_create_ico.Location = new System.Drawing.Point(548, 163);
+            this.btn_create_ico.Name = "btn_create_ico";
+            this.btn_create_ico.Size = new System.Drawing.Size(160, 40);
+            this.btn_create_ico.TabIndex = 7;
+            this.btn_create_ico.Text = "Сгенерировать ярлыки";
+            this.btn_create_ico.UseVisualStyleBackColor = true;
+            this.btn_create_ico.Click += new System.EventHandler(this.btn_create_ico_Click);
+            // 
+            // checkBox1
+            // 
+            this.checkBox1.AutoSize = true;
+            this.checkBox1.Location = new System.Drawing.Point(12, 117);
+            this.checkBox1.Name = "checkBox1";
+            this.checkBox1.Size = new System.Drawing.Size(456, 20);
+            this.checkBox1.TabIndex = 8;
+            this.checkBox1.Text = "Применить генерацию конфигурационных файлов при создании ярлыков";
+            this.checkBox1.UseVisualStyleBackColor = true;
+            // 
             // Settings
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
@@ -359,6 +484,8 @@
             this.tabPage2.PerformLayout();
             this.tabPage3.ResumeLayout(false);
             this.tabPage3.PerformLayout();
+            this.tabPage4.ResumeLayout(false);
+            this.tabPage4.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -393,5 +520,16 @@
         private System.Windows.Forms.Button btn_import;
         private System.Windows.Forms.CheckBox cb_removeAll;
         private System.ComponentModel.BackgroundWorker bw_animation;
+        private System.Windows.Forms.CheckBox cb_safeImport;
+        private System.Windows.Forms.TabPage tabPage4;
+        private System.Windows.Forms.Button btn_save_ico;
+        private System.Windows.Forms.Button btn_opn_rms_ico;
+        private System.Windows.Forms.TextBox tb_rms_ico;
+        private System.Windows.Forms.Label label8;
+        private System.Windows.Forms.Button btn_opn_rms;
+        private System.Windows.Forms.TextBox tb_rms;
+        private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.Button btn_create_ico;
+        private System.Windows.Forms.CheckBox checkBox1;
     }
 }
