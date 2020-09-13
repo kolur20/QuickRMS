@@ -11,6 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Xml;
 
 namespace QuickRMS.Forms
 {
@@ -263,12 +264,13 @@ namespace QuickRMS.Forms
                 btn_save_ico_Click(null, null);
                 var backname = "BackOffice.exe";
                 var backFolder = "Office";
+                var backConfig = "Common.Settings.config";
                 var folders = Directory.GetDirectories(tb_rms.Text);
                 var fileRMS = new List<RMSico>();
                 foreach (var folder in folders)
                 {
                     var files = Directory.GetFiles(folder);
-                    var folderrms = Directory.GetDirectories(folder);
+                    //var folderrms = Directory.GetDirectories(folder);
                     var fiel = files.Where(data => data.Contains(backname));
                     if (fiel.Count() == 0)
                     {
@@ -282,6 +284,12 @@ namespace QuickRMS.Forms
                                 var rms = GetFileInfo(fiel.First());
                                 fileRMS.Add(rms);
                                 CreateLink(rms.File, rms.ToString());
+                                if (cb_xml_config.Checked)
+                                {
+                                    RenamedXmlRMSConfig(Directory.GetFiles(Path.Combine(folder, backFolder)).Where(data => data.Contains(backConfig)).First(), rms.Version, rms.IsChain);
+                                    
+
+                                }
                             }
                                 
                         }
@@ -293,6 +301,11 @@ namespace QuickRMS.Forms
                         var rms = GetFileInfo(fiel.First());
                         fileRMS.Add(rms);
                         CreateLink(rms.File, rms.ToString());
+                        if (cb_xml_config.Checked)
+                        {
+                            RenamedXmlRMSConfig(Directory.GetFiles(folder).Where(data => data.Contains(backConfig)).First(), rms.Version, rms.IsChain);
+                            
+                        }
                     }
                 }
                 MessageBox.Show($@"Ярлыки созданы в папке {tb_rms_ico.Text}");
@@ -317,6 +330,107 @@ namespace QuickRMS.Forms
             Shortcut.TargetPath = SourceFile;
             Shortcut.IconLocation = SourceFile;
             Shortcut.Save();
+        }
+        void RenamedXmlRMSConfig(string xmlfile, string version, bool isChain)
+        {
+            var doc = new XmlDocument();
+            doc.Load(xmlfile);
+            var settings = doc.GetElementsByTagName("setting");
+            foreach (XmlNode setting in settings)
+            {
+                if (setting.Attributes["name"].Value == "RMS_EDITION_SUBPATH")
+                    setting.FirstChild.InnerText = "Rms " + version;
+                    
+                if (setting.Attributes["name"].Value == "CHAIN_EDITION_SUBPATH")
+                    setting.FirstChild.InnerText = "Chain " + version;
+                  
+            }
+            doc.Save(xmlfile);
+            var path = isChain ? "Chain " : "Rms ";
+            path += version;
+            path = $@"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\iiko\{path}\Default\config";
+            Directory.CreateDirectory(path);
+            doc = new XmlDocument();
+            doc.LoadXml(Properties.Resources.backclient_config);
+            doc.Save(Path.Combine(path, "backclient.config.xml"));
+        }
+
+        private void btn_replace_connection_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                var error = string.Empty;
+                var Servers = SqlManager.GetInstance().GetData().ToList();
+                var servers_group = Servers.GroupBy(data => data.isChain);
+                var folder = $@"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\iiko";
+
+                foreach (var group in servers_group)
+                {
+                    var path = group.Key ? "Chain " : "Rms ";
+                    var servers_version = group.GroupBy(data => data.Version);
+                    foreach (var server in servers_version)
+                    {
+                        var path_current = path + server.Key;
+                        if (!File.Exists($@"{folder}\{path_current}\Default\config\backclient.config.xml"))
+                        {
+                            error += $"Не найден экземпляр настройки для: {path_current}/n";
+                            continue;
+                        }
+                        var doc = new XmlDocument();
+
+                        
+                        doc.Load($@"{folder}\{path_current}\Default\config\backclient.config.xml");
+                        foreach (var serv in server)
+                        {
+                            var root = doc.DocumentElement;
+
+                            var ServersList = doc.CreateElement("ServersList");
+                            var ServerName = doc.CreateElement("ServerName");
+                            var Version = doc.CreateElement("Version");
+                            var ComputerName = doc.CreateElement("ComputerName");
+                            var Protocol = doc.CreateElement("Protocol");
+                            var ServerAddr = doc.CreateElement("ServerAddr");
+                            var ServerSubUrl = doc.CreateElement("ServerSubUrl");
+                            var Port = doc.CreateElement("Port");
+                            var IsPresent = doc.CreateElement("IsPresent");
+
+                            var ServerNameText = doc.CreateTextNode(serv.Name);
+                            var VersionText = doc.CreateTextNode(serv.Version);
+                            var str_connection = serv.Connection.Split(':');
+                            var ProtocolText = doc.CreateTextNode(str_connection.First());
+                            var ServerAddrText = doc.CreateTextNode(str_connection[1].Remove(0, 2));
+                            var ServerSubUrlText = doc.CreateTextNode($@"/{serv.Connection.Split('/').Last()}");
+                            var PortText = doc.CreateTextNode(str_connection[2].Remove(str_connection[2].LastIndexOf('/')));
+                            var IsPresentText = doc.CreateTextNode("false");
+
+                            ServerName.AppendChild(ServerNameText);
+                            Version.AppendChild(VersionText);
+                            Protocol.AppendChild(ProtocolText);
+                            ServerAddr.AppendChild(ServerAddrText);
+                            ServerSubUrl.AppendChild(ServerSubUrlText);
+                            Port.AppendChild(PortText);
+                            IsPresent.AppendChild(IsPresentText);
+
+                            ServersList.AppendChild(ServerName);
+                            ServersList.AppendChild(Version);
+                            ServersList.AppendChild(ComputerName);
+                            ServersList.AppendChild(Protocol);
+                            ServersList.AppendChild(ServerAddr);
+                            ServersList.AppendChild(ServerSubUrl);
+                            ServersList.AppendChild(Port);
+                            ServersList.AppendChild(IsPresent);
+
+                            root.AppendChild(ServersList);
+                        }
+                        doc.Save($@"{folder}\{path_current}\Default\config\backclient.config.xml");
+                    }
+                }
+                MessageBox.Show(error, "Выполнено");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Ошибка");
+            }
         }
     }
 }

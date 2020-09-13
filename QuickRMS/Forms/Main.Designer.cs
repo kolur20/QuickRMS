@@ -71,6 +71,7 @@
             this.tv_servers.Size = new System.Drawing.Size(273, 83);
             this.tv_servers.TabIndex = 3;
             this.tv_servers.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.tv_servers_AfterSelect);
+            this.tv_servers.DoubleClick += new System.EventHandler(this.tv_servers_DoubleClick);
             // 
             // tb_server
             // 

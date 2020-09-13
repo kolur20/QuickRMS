@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -180,8 +181,24 @@ namespace QuickRMS.Forms
                 tv_servers.Nodes.AddRange((from data in listServer select new TreeNode(data)).ToArray());
 
             }
-        } 
-        
+        }
+
         #endregion
+
+        private void tv_servers_DoubleClick(object sender, EventArgs e)
+        {
+            try
+            {
+                var s = ((TreeView)sender).SelectedNode.Text;
+                var serv = Servers.Where(data => data.Name == s).First();
+                var process = new Process();
+                process.StartInfo.FileName = System.IO.Path.Combine(Properties.Settings.Default.PathRMSico, RMSico.GetName(serv.Version, serv.isChain));
+                process.Start();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Ошибка");
+            }
+        }
     }
 }

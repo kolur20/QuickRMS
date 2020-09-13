@@ -24,5 +24,10 @@ namespace QuickRMS.Classes
             var name =  IsChain? "ChainOffice" : "BackOffice";
             return string.Concat(name, " ", Version, ".lnk");
         }
+
+        static public string GetName(string version, bool ischain)
+        {
+            return string.Concat(ischain ? "ChainOffice" : "BackOffice", " ", version, ".lnk");
+        }
     }
 }

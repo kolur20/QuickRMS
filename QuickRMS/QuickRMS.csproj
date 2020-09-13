@@ -160,6 +160,9 @@
     <Content Include="info.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="Resources\backclient.config.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Resources\clock_fast_icon_137750.ico" />
     <Content Include="Resources\loading-bar.gif" />
     <Content Include="Resources\options.png" />

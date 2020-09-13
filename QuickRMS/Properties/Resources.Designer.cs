@@ -61,6 +61,26 @@ namespace QuickRMS.Properties {
         }
         
         /// <summary>
+        ///   Ищет локализованную строку, похожую на &lt;?xml version=&quot;1.0&quot;?&gt;
+        ///&lt;config xmlns:xsd=&quot;http://www.w3.org/2001/XMLSchema&quot; xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;&gt;
+        ///  &lt;ServerProtocol&gt;unknown&lt;/ServerProtocol&gt;
+        ///  &lt;ServerAddr&gt;localhost&lt;/ServerAddr&gt;
+        ///  &lt;ServerPort&gt;8080&lt;/ServerPort&gt;
+        ///  &lt;ServerSubUrl&gt;/resto&lt;/ServerSubUrl&gt;
+        ///  &lt;ChainServerProtocol&gt;unknown&lt;/ChainServerProtocol&gt;
+        ///  &lt;ChainServerAddr&gt;localhost&lt;/ChainServerAddr&gt;
+        ///  &lt;ChainServerPort&gt;9080&lt;/ChainServerPort&gt;
+        ///  &lt;ChainServerSubUrl&gt;/resto&lt;/ChainServerSubUrl&gt;
+        ///  &lt;ServersList&gt;
+        ///    &lt;ServerName [остаток строки не уместился]&quot;;.
+        /// </summary>
+        internal static string backclient_config {
+            get {
+                return ResourceManager.GetString("backclient_config", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
         /// </summary>
         internal static System.Drawing.Bitmap loading_bar {
