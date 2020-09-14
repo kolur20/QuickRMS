@@ -117,7 +117,7 @@ namespace QuickRMS.Forms
                     //запись новых данных, которых еще нет в базе
                     killServers = new List<string>();
                     foreach (var server in servers)
-                        if (serversInDB.Where(data => data.Name == server.Name) != null)
+                        if (serversInDB.Where(data => data.Name == server.Name).Count() != 0)
                             killServers.Add(server.Name);
                     
                     foreach (var kill in killServers)
@@ -373,7 +373,7 @@ namespace QuickRMS.Forms
                         var path_current = path + server.Key;
                         if (!File.Exists($@"{folder}\{path_current}\Default\config\backclient.config.xml"))
                         {
-                            error += $"Не найден экземпляр настройки для: {path_current}/n";
+                            error += $"Не найден экземпляр настройки для: {path_current}\n";
                             continue;
                         }
                         var doc = new XmlDocument();
@@ -425,7 +425,7 @@ namespace QuickRMS.Forms
                         doc.Save($@"{folder}\{path_current}\Default\config\backclient.config.xml");
                     }
                 }
-                MessageBox.Show(error, "Выполнено");
+                MessageBox.Show(string.Format(error), "Выполнено");
             }
             catch (Exception ex)
             {

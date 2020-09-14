@@ -85,7 +85,7 @@ namespace QuickRMS.Properties {
         /// </summary>
         internal static System.Drawing.Bitmap loading_bar {
             get {
-                object obj = ResourceManager.GetObject("loading-bar", resourceCulture);
+                object obj = ResourceManager.GetObject("loading_bar", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
