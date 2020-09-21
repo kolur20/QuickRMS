@@ -58,6 +58,7 @@
             this.btn_import = new System.Windows.Forms.Button();
             this.cb_removeAll = new System.Windows.Forms.CheckBox();
             this.tabPage4 = new System.Windows.Forms.TabPage();
+            this.btn_replace_connection = new System.Windows.Forms.Button();
             this.cb_xml_config = new System.Windows.Forms.CheckBox();
             this.btn_create_ico = new System.Windows.Forms.Button();
             this.btn_save_ico = new System.Windows.Forms.Button();
@@ -68,7 +69,8 @@
             this.tb_rms = new System.Windows.Forms.TextBox();
             this.label7 = new System.Windows.Forms.Label();
             this.bw_animation = new System.ComponentModel.BackgroundWorker();
-            this.btn_replace_connection = new System.Windows.Forms.Button();
+            this.btn_cansel_settings = new System.Windows.Forms.Button();
+            this.cb_alt_run = new System.Windows.Forms.CheckBox();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -364,6 +366,8 @@
             // tabPage4
             // 
             this.tabPage4.BackColor = System.Drawing.Color.WhiteSmoke;
+            this.tabPage4.Controls.Add(this.cb_alt_run);
+            this.tabPage4.Controls.Add(this.btn_cansel_settings);
             this.tabPage4.Controls.Add(this.btn_replace_connection);
             this.tabPage4.Controls.Add(this.cb_xml_config);
             this.tabPage4.Controls.Add(this.btn_create_ico);
@@ -380,14 +384,25 @@
             this.tabPage4.TabIndex = 3;
             this.tabPage4.Text = "Ярлыки";
             // 
+            // btn_replace_connection
+            // 
+            this.btn_replace_connection.Location = new System.Drawing.Point(382, 163);
+            this.btn_replace_connection.Name = "btn_replace_connection";
+            this.btn_replace_connection.Size = new System.Drawing.Size(160, 40);
+            this.btn_replace_connection.TabIndex = 9;
+            this.btn_replace_connection.Text = "Перезаписать подключения серверов";
+            this.btn_replace_connection.UseVisualStyleBackColor = true;
+            this.btn_replace_connection.Click += new System.EventHandler(this.btn_replace_connection_Click);
+            // 
             // cb_xml_config
             // 
             this.cb_xml_config.AutoSize = true;
             this.cb_xml_config.Location = new System.Drawing.Point(12, 117);
             this.cb_xml_config.Name = "cb_xml_config";
-            this.cb_xml_config.Size = new System.Drawing.Size(456, 20);
+            this.cb_xml_config.Size = new System.Drawing.Size(571, 20);
             this.cb_xml_config.TabIndex = 8;
-            this.cb_xml_config.Text = "Применить генерацию конфигурационных файлов при создании ярлыков";
+            this.cb_xml_config.Text = "Применить генерацию конфигурационных файлов с изменением пути при создании ярлыко" +
+    "в";
             this.cb_xml_config.UseVisualStyleBackColor = true;
             // 
             // btn_create_ico
@@ -467,15 +482,26 @@
             this.bw_animation.WorkerSupportsCancellation = true;
             this.bw_animation.DoWork += new System.ComponentModel.DoWorkEventHandler(this.bw_animation_DoWork);
             // 
-            // btn_replace_connection
+            // btn_cansel_settings
             // 
-            this.btn_replace_connection.Location = new System.Drawing.Point(382, 163);
-            this.btn_replace_connection.Name = "btn_replace_connection";
-            this.btn_replace_connection.Size = new System.Drawing.Size(160, 40);
-            this.btn_replace_connection.TabIndex = 9;
-            this.btn_replace_connection.Text = "Перезаписать подключения серверов";
-            this.btn_replace_connection.UseVisualStyleBackColor = true;
-            this.btn_replace_connection.Click += new System.EventHandler(this.btn_replace_connection_Click);
+            this.btn_cansel_settings.Location = new System.Drawing.Point(12, 163);
+            this.btn_cansel_settings.Name = "btn_cansel_settings";
+            this.btn_cansel_settings.Size = new System.Drawing.Size(160, 40);
+            this.btn_cansel_settings.TabIndex = 10;
+            this.btn_cansel_settings.Text = "Восстановить файлы конфигураций";
+            this.btn_cansel_settings.UseVisualStyleBackColor = true;
+            this.btn_cansel_settings.Click += new System.EventHandler(this.btn_cansel_settings_Click);
+            // 
+            // cb_alt_run
+            // 
+            this.cb_alt_run.AutoSize = true;
+            this.cb_alt_run.Location = new System.Drawing.Point(12, 209);
+            this.cb_alt_run.Name = "cb_alt_run";
+            this.cb_alt_run.Size = new System.Drawing.Size(213, 20);
+            this.cb_alt_run.TabIndex = 11;
+            this.cb_alt_run.Text = "Альтернативный запуск офисов";
+            this.cb_alt_run.UseVisualStyleBackColor = true;
+            this.cb_alt_run.CheckedChanged += new System.EventHandler(this.cb_alt_run_CheckedChanged);
             // 
             // Settings
             // 
@@ -544,5 +570,7 @@
         private System.Windows.Forms.Button btn_create_ico;
         private System.Windows.Forms.CheckBox cb_xml_config;
         private System.Windows.Forms.Button btn_replace_connection;
+        private System.Windows.Forms.CheckBox cb_alt_run;
+        private System.Windows.Forms.Button btn_cansel_settings;
     }
 }

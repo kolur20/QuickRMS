@@ -27,6 +27,9 @@ namespace QuickRMS.Forms
 
             tb_rms.Text = Properties.Settings.Default.PathRMS;
             tb_rms_ico.Text = Properties.Settings.Default.PathRMSico;
+
+
+            cb_alt_run.Checked = Properties.Settings.Default.AltRunRMS;
         }
 
 
@@ -205,16 +208,25 @@ namespace QuickRMS.Forms
 
         private void btn_reloadversion_Click(object sender, EventArgs e)
         {
-
+            var str = string.Empty;
             try
             {
                 bw_animation.RunWorkerAsync();
                 var servers = new List<Server>();
                 servers = SqlManager.GetInstance().GetData().ToList();
                 var connection = new ConnectionManager();
+                
                 foreach (var server in servers)
                 {
-                    server.Version = connection.GetServerVersion(server.Connection);
+                    try
+                    {
+                        server.Version = connection.GetServerVersion(server.Connection);
+                    }
+                    catch (Exception ex)
+                    {
+                        str += server.Name + " " + server.Connection + ": " + ex.Message + '\n';
+                        continue;
+                    }
                 }
                 SqlManager.GetInstance().UpdateVersions(servers);
                 bw_animation.CancelAsync();
@@ -223,6 +235,10 @@ namespace QuickRMS.Forms
             {
                 bw_animation.CancelAsync();
                 MessageBox.Show(ex.Message, "Ошибка");
+            }
+            finally
+            {
+                MessageBox.Show(str, "Info");
             }
 
         }
@@ -331,7 +347,7 @@ namespace QuickRMS.Forms
             Shortcut.IconLocation = SourceFile;
             Shortcut.Save();
         }
-        void RenamedXmlRMSConfig(string xmlfile, string version, bool isChain)
+        void RenamedXmlRMSConfig(string xmlfile, string version, bool isChain, bool DEFAULT = false)
         {
             var doc = new XmlDocument();
             doc.Load(xmlfile);
@@ -339,20 +355,37 @@ namespace QuickRMS.Forms
             foreach (XmlNode setting in settings)
             {
                 if (setting.Attributes["name"].Value == "RMS_EDITION_SUBPATH")
-                    setting.FirstChild.InnerText = "Rms " + version;
+                    setting.FirstChild.InnerText = DEFAULT ? "Rms" :"Rms " + version;
                     
                 if (setting.Attributes["name"].Value == "CHAIN_EDITION_SUBPATH")
-                    setting.FirstChild.InnerText = "Chain " + version;
+                    setting.FirstChild.InnerText = DEFAULT ? "Chain" : "Chain " + version;
                   
             }
             doc.Save(xmlfile);
-            var path = isChain ? "Chain " : "Rms ";
-            path += version;
-            path = $@"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\iiko\{path}\Default\config";
-            Directory.CreateDirectory(path);
-            doc = new XmlDocument();
-            doc.LoadXml(Properties.Resources.backclient_config);
-            doc.Save(Path.Combine(path, "backclient.config.xml"));
+
+            //создание папок и файлов в %appdata%
+            var path = isChain ? "Chain" : "Rms";
+            if (DEFAULT)
+            {
+                path = $@"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\iiko\{path}\{Properties.Settings.Default.AltRunRMSFolder}\config";
+                Directory.CreateDirectory(path);
+                if (!File.Exists(Path.Combine(path, "backclient.config.xml")))
+                {
+                    doc = new XmlDocument();
+                    doc.LoadXml(Properties.Resources.backclient_config);
+                    doc.Save(Path.Combine(path, "backclient.config.xml"));
+                }
+            }
+            else
+            {
+                path += " " + version;
+                path = $@"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\iiko\{path}\Default\config";
+                Directory.CreateDirectory(path);
+                doc = new XmlDocument();
+                doc.LoadXml(Properties.Resources.backclient_config);
+                doc.Save(Path.Combine(path, "backclient.config.xml"));
+            }
+            
         }
 
         private void btn_replace_connection_Click(object sender, EventArgs e)
@@ -432,5 +465,85 @@ namespace QuickRMS.Forms
                 MessageBox.Show(ex.Message, "Ошибка");
             }
         }
+
+        private void cb_alt_run_CheckedChanged(object sender, EventArgs e)
+        {
+            Properties.Settings.Default.AltRunRMS = cb_alt_run.Checked;
+        }
+        /// <summary>
+        /// восстановить все пути создания данных рмс по умолчанию
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void btn_cansel_settings_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (!Properties.Settings.Default.AltRunRMS)
+                {
+                    MessageBox.Show("Альтернативный запуск RMS не используется", "Ошибка");
+                    return;
+                }
+                btn_save_ico_Click(null, null);
+                var backname = "BackOffice.exe";
+                var backFolder = "Office";
+                var backConfig = "Common.Settings.config";
+                var folders = Directory.GetDirectories(tb_rms.Text);
+                var fileRMS = new List<RMSico>();
+                foreach (var folder in folders)
+                {
+                    var files = Directory.GetFiles(folder);
+                    //var folderrms = Directory.GetDirectories(folder);
+                    var fiel = files.Where(data => data.Contains(backname));
+                    if (fiel.Count() == 0)
+                    {
+                        if (Directory.Exists(Path.Combine(folder, backFolder)))
+                        {
+                            fiel = Directory.GetFiles(Path.Combine(folder, backFolder)).Where(data => data.Contains(backname));
+                            if (fiel.Count() == 0)
+                                continue;
+                            else
+                            {
+                                var rms = GetFileInfo(fiel.First());
+                                fileRMS.Add(rms);
+                                CreateLink(rms.File, rms.ToString());
+                                RenamedXmlRMSConfig(Directory.GetFiles(
+                                        Path.Combine(folder, backFolder)).Where(data => data.Contains(backConfig)).First(),
+                                        rms.Version,
+                                        rms.IsChain,
+                                        Properties.Settings.Default.AltRunRMS
+                                        );
+
+
+
+                            }
+
+                        }
+                        else
+                            continue;
+                    }
+                    else
+                    {
+                        var rms = GetFileInfo(fiel.First());
+                        fileRMS.Add(rms);
+                        CreateLink(rms.File, rms.ToString());
+                        RenamedXmlRMSConfig(Directory.GetFiles(
+                                         Path.Combine(folder)).Where(data => data.Contains(backConfig)).First(),
+                                         rms.Version,
+                                         rms.IsChain,
+                                         Properties.Settings.Default.AltRunRMS
+                                         );
+                    }
+
+                    
+                }
+                MessageBox.Show($@"Ярлыки созданы в папке {tb_rms_ico.Text}");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Ошибка");
+            }
+        }
     }
+
 }

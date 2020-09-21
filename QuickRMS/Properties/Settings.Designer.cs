@@ -82,5 +82,41 @@ namespace QuickRMS.Properties {
                 this["PathRMSico"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool AltRunRMS {
+            get {
+                return ((bool)(this["AltRunRMS"]));
+            }
+            set {
+                this["AltRunRMS"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Flagman")]
+        public string AltRunRMSFolder {
+            get {
+                return ((string)(this["AltRunRMSFolder"]));
+            }
+            set {
+                this["AltRunRMSFolder"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("5000")]
+        public int TimeStart {
+            get {
+                return ((int)(this["TimeStart"]));
+            }
+            set {
+                this["TimeStart"] = value;
+            }
+        }
     }
 }

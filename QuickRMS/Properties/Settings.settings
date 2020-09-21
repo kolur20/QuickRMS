@@ -17,5 +17,14 @@
     <Setting Name="PathRMSico" Type="System.String" Scope="User">
       <Value Profile="(Default)">C:\iiko\Office.ico</Value>
     </Setting>
+    <Setting Name="AltRunRMS" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="AltRunRMSFolder" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Flagman</Value>
+    </Setting>
+    <Setting Name="TimeStart" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">5000</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

@@ -193,7 +193,62 @@ namespace QuickRMS.Forms
                 var serv = Servers.Where(data => data.Name == s).First();
                 var process = new Process();
                 process.StartInfo.FileName = System.IO.Path.Combine(Properties.Settings.Default.PathRMSico, RMSico.GetName(serv.Version, serv.isChain));
+                if (Properties.Settings.Default.AltRunRMS)
+                {
+                    process.StartInfo.Arguments = $"/AdditionalTmpFolder={Properties.Settings.Default.AltRunRMSFolder}";
+                    var folder = $@"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\iiko\";
+                    folder += serv.isChain ? "Chain" : "Rms";
+                    folder = $@"{folder}\{Properties.Settings.Default.AltRunRMSFolder}\config";
+
+                    if (System.IO.File.Exists($@"{folder}\backclient.config.xml"))
+                    {
+                        var doc = new System.Xml.XmlDocument();
+                        doc.Load($@"{folder}\backclient.config.xml");
+                        var elements = doc.DocumentElement.ChildNodes;
+                        
+                        var str_connection = serv.Connection.Split(':');
+                        foreach (System.Xml.XmlNode serverInfo in elements)
+                        {
+                            if (serverInfo.Name == "ServersList")
+                            {
+                                var servInfoCurrent = serverInfo.ChildNodes;
+                                foreach (System.Xml.XmlNode currentInfo in servInfoCurrent)
+                                {
+                                    if (currentInfo.Name == "ServerAddr")
+                                    {
+                                        currentInfo.InnerText = str_connection[1].Remove(0, 2);
+                                        continue;
+                                    }
+                                    if (currentInfo.Name == "Protocol")
+                                    {
+                                        currentInfo.InnerText = str_connection.First();
+                                        continue;
+                                    }
+                                    if (currentInfo.Name == "ServerSubUrl")
+                                    {
+                                        currentInfo.InnerText = $@"/{serv.Connection.Split('/').Last()}";
+                                        continue;
+                                    }
+                                    if (currentInfo.Name == "Port")
+                                        currentInfo.InnerText = str_connection[2].Remove(str_connection[2].LastIndexOf('/'));
+                                }
+
+                            }
+                            if (serverInfo.Name == "Login")
+                            {
+                                //serverInfo.InnerText = serv.Login;
+                                continue;
+                            }
+                        }
+                        doc.Save($@"{folder}\backclient.config.xml");
+                    }
+                }
                 process.Start();
+                process.WaitForExit(Properties.Settings.Default.TimeStart);
+                //SendKeys.Send(serv.Pass);
+
+                SendKeys.Send("restoresto");
+                SendKeys.Send("{ENTER}");
             }
             catch (Exception ex)
             {
