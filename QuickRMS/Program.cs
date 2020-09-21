@@ -23,24 +23,41 @@ namespace QuickRMS
 
             if (hasAdministrativeRight == false)
             {
-                ProcessStartInfo processInfo = new ProcessStartInfo(); 
-                processInfo.Verb = "runas"; 
-                processInfo.FileName = Application.ExecutablePath; 
+                ProcessStartInfo processInfo = new ProcessStartInfo();
+                processInfo.Verb = "runas";
+                processInfo.FileName = Application.ExecutablePath;
                 try
                 {
-                    Process.Start(processInfo); 
+                    Process.Start(processInfo);
                 }
                 catch (Win32Exception)
                 {
-                    
+
                 }
-                Application.Exit(); 
+                Application.Exit();
             }
-            else 
+            else
             {
-                Application.EnableVisualStyles();
-                Application.SetCompatibleTextRenderingDefault(false);
-                Application.Run(new Main());
+                if (Environment.GetCommandLineArgs().Count() > 1)
+                {
+                    try
+                    {
+                        var run = new Classes.QuickRun(Environment.CommandLine.Remove(0, Environment.GetCommandLineArgs()[0].Length+1));
+                        run.Start();
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show(ex.Message, "Ошибка QuickRMS.exe");
+                    }
+                    Application.Exit();
+                }
+                else
+                {
+                    Application.EnableVisualStyles();
+                    Application.SetCompatibleTextRenderingDefault(false);
+                    Application.Run(new Main());
+
+                }
             }
         }
     }

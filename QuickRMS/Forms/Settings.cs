@@ -66,9 +66,12 @@ namespace QuickRMS.Forms
             server.Version = tb_version.Text;
             server.coConnection = tb_co.Text;
             server.isChain = cb_chain.Checked;
+            server.Login = tb_login.Text;
+            server.Password = tb_password.Text;
             try
             {
                 SqlManager.GetInstance().Insert(server);
+                MessageBox.Show("Добавлено", "Успешно");
             }
             catch (Exception ex)
             {
@@ -101,7 +104,7 @@ namespace QuickRMS.Forms
                     {
 
                         killServers.Add(server.Name);
-                        tb_instr.Text += string.Format($"Ошибка: {server.Name} \n");
+                        tb_instr.Text += string.Format($"Ошибка: {server.Name} '\n'");
                     }
                 }
 
@@ -116,7 +119,7 @@ namespace QuickRMS.Forms
                 var serversInDB = SqlManager.GetInstance().GetData().ToList();
                 if (cb_safeImport.Checked && serversInDB != null)
                 {
-                    tb_instr.Text += $"Записей для импорта обработано: {servers.Count} из {servers.Count + killServers.Count} \n";
+                    tb_instr.Text += $"Записей для импорта обработано: {servers.Count} из {servers.Count + killServers.Count} '\n'";
                     //запись новых данных, которых еще нет в базе
                     killServers = new List<string>();
                     foreach (var server in servers)
@@ -126,19 +129,19 @@ namespace QuickRMS.Forms
                     foreach (var kill in killServers)
                         servers.RemoveAt(servers.FindIndex(data => data.Name == kill));
                     SqlManager.GetInstance().Insert(servers);
-                    tb_instr.Text += $"Импортировано: {servers.Count} из {servers.Count + killServers.Count} \n";
+                    tb_instr.Text += $"Импортировано: {servers.Count} из {servers.Count + killServers.Count} '\n'";
                 }
                 else
                 {
                     //запись новых данных в бд
                     SqlManager.GetInstance().Insert(servers);
-                    tb_instr.Text += $"Импортировано: {servers.Count} из {servers.Count + killServers.Count} \n";
+                    tb_instr.Text += $"Импортировано: {servers.Count} из {servers.Count + killServers.Count} '\n'";
                 }
                 bw_animation.CancelAsync();
             }
             catch (Exception ex)
             {
-                tb_instr.Text += $"Фатальная ошибка при импорте \n";
+                tb_instr.Text += $"Фатальная ошибка при импорте '\n'";
                 MessageBox.Show(ex.Message, "Ошибка");
                 bw_animation.CancelAsync();
                 return;
@@ -172,14 +175,14 @@ namespace QuickRMS.Forms
 
                 var csv = new CsvManager();
                 csv.Export(file, SqlManager.GetInstance().GetData());
-                tb_instr.Text += $"Успешный экспорт файла {file} \n";
+                tb_instr.Text += $"Успешный экспорт файла {file} '\n'";
                 
                 bw_animation.CancelAsync();
             }
             catch (Exception ex)
             {
                 
-                tb_instr.Text += $"Ошибка при экспорте файла {file} \n";
+                tb_instr.Text += $"Ошибка при экспорте файла {file} '\n'";
                 MessageBox.Show(ex.Message, "Ошибка");
 
                 bw_animation.CancelAsync();
@@ -406,7 +409,7 @@ namespace QuickRMS.Forms
                         var path_current = path + server.Key;
                         if (!File.Exists($@"{folder}\{path_current}\Default\config\backclient.config.xml"))
                         {
-                            error += $"Не найден экземпляр настройки для: {path_current}\n";
+                            error += $"Не найден экземпляр настройки для: {path_current}'\n'";
                             continue;
                         }
                         var doc = new XmlDocument();

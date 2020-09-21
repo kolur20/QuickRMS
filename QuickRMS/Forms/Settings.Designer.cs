@@ -58,6 +58,8 @@
             this.btn_import = new System.Windows.Forms.Button();
             this.cb_removeAll = new System.Windows.Forms.CheckBox();
             this.tabPage4 = new System.Windows.Forms.TabPage();
+            this.cb_alt_run = new System.Windows.Forms.CheckBox();
+            this.btn_cansel_settings = new System.Windows.Forms.Button();
             this.btn_replace_connection = new System.Windows.Forms.Button();
             this.cb_xml_config = new System.Windows.Forms.CheckBox();
             this.btn_create_ico = new System.Windows.Forms.Button();
@@ -69,8 +71,10 @@
             this.tb_rms = new System.Windows.Forms.TextBox();
             this.label7 = new System.Windows.Forms.Label();
             this.bw_animation = new System.ComponentModel.BackgroundWorker();
-            this.btn_cansel_settings = new System.Windows.Forms.Button();
-            this.cb_alt_run = new System.Windows.Forms.CheckBox();
+            this.tb_password = new System.Windows.Forms.TextBox();
+            this.label9 = new System.Windows.Forms.Label();
+            this.tb_login = new System.Windows.Forms.TextBox();
+            this.label10 = new System.Windows.Forms.Label();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -94,6 +98,10 @@
             // tabPage1
             // 
             this.tabPage1.BackColor = System.Drawing.Color.WhiteSmoke;
+            this.tabPage1.Controls.Add(this.tb_password);
+            this.tabPage1.Controls.Add(this.label9);
+            this.tabPage1.Controls.Add(this.tb_login);
+            this.tabPage1.Controls.Add(this.label10);
             this.tabPage1.Controls.Add(this.btn_insert);
             this.tabPage1.Controls.Add(this.cb_chain);
             this.tabPage1.Controls.Add(this.tb_co);
@@ -114,7 +122,7 @@
             // 
             // btn_insert
             // 
-            this.btn_insert.Location = new System.Drawing.Point(604, 96);
+            this.btn_insert.Location = new System.Drawing.Point(604, 135);
             this.btn_insert.Name = "btn_insert";
             this.btn_insert.Size = new System.Drawing.Size(103, 40);
             this.btn_insert.TabIndex = 18;
@@ -125,7 +133,7 @@
             // cb_chain
             // 
             this.cb_chain.AutoSize = true;
-            this.cb_chain.Location = new System.Drawing.Point(326, 96);
+            this.cb_chain.Location = new System.Drawing.Point(326, 135);
             this.cb_chain.Name = "cb_chain";
             this.cb_chain.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
             this.cb_chain.Size = new System.Drawing.Size(56, 20);
@@ -151,7 +159,7 @@
             // 
             // btn_check
             // 
-            this.btn_check.Location = new System.Drawing.Point(480, 96);
+            this.btn_check.Location = new System.Drawing.Point(480, 135);
             this.btn_check.Name = "btn_check";
             this.btn_check.Size = new System.Drawing.Size(103, 40);
             this.btn_check.TabIndex = 17;
@@ -161,7 +169,7 @@
             // 
             // tb_version
             // 
-            this.tb_version.Location = new System.Drawing.Point(143, 96);
+            this.tb_version.Location = new System.Drawing.Point(143, 135);
             this.tb_version.Name = "tb_version";
             this.tb_version.ReadOnly = true;
             this.tb_version.Size = new System.Drawing.Size(149, 23);
@@ -170,7 +178,7 @@
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(8, 99);
+            this.label3.Location = new System.Drawing.Point(8, 138);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(49, 16);
             this.label3.TabIndex = 15;
@@ -384,6 +392,27 @@
             this.tabPage4.TabIndex = 3;
             this.tabPage4.Text = "Ярлыки";
             // 
+            // cb_alt_run
+            // 
+            this.cb_alt_run.AutoSize = true;
+            this.cb_alt_run.Location = new System.Drawing.Point(12, 209);
+            this.cb_alt_run.Name = "cb_alt_run";
+            this.cb_alt_run.Size = new System.Drawing.Size(213, 20);
+            this.cb_alt_run.TabIndex = 11;
+            this.cb_alt_run.Text = "Альтернативный запуск офисов";
+            this.cb_alt_run.UseVisualStyleBackColor = true;
+            this.cb_alt_run.CheckedChanged += new System.EventHandler(this.cb_alt_run_CheckedChanged);
+            // 
+            // btn_cansel_settings
+            // 
+            this.btn_cansel_settings.Location = new System.Drawing.Point(12, 163);
+            this.btn_cansel_settings.Name = "btn_cansel_settings";
+            this.btn_cansel_settings.Size = new System.Drawing.Size(160, 40);
+            this.btn_cansel_settings.TabIndex = 10;
+            this.btn_cansel_settings.Text = "Восстановить файлы конфигураций";
+            this.btn_cansel_settings.UseVisualStyleBackColor = true;
+            this.btn_cansel_settings.Click += new System.EventHandler(this.btn_cansel_settings_Click);
+            // 
             // btn_replace_connection
             // 
             this.btn_replace_connection.Location = new System.Drawing.Point(382, 163);
@@ -482,26 +511,37 @@
             this.bw_animation.WorkerSupportsCancellation = true;
             this.bw_animation.DoWork += new System.ComponentModel.DoWorkEventHandler(this.bw_animation_DoWork);
             // 
-            // btn_cansel_settings
+            // tb_password
             // 
-            this.btn_cansel_settings.Location = new System.Drawing.Point(12, 163);
-            this.btn_cansel_settings.Name = "btn_cansel_settings";
-            this.btn_cansel_settings.Size = new System.Drawing.Size(160, 40);
-            this.btn_cansel_settings.TabIndex = 10;
-            this.btn_cansel_settings.Text = "Восстановить файлы конфигураций";
-            this.btn_cansel_settings.UseVisualStyleBackColor = true;
-            this.btn_cansel_settings.Click += new System.EventHandler(this.btn_cansel_settings_Click);
+            this.tb_password.Location = new System.Drawing.Point(519, 99);
+            this.tb_password.Name = "tb_password";
+            this.tb_password.Size = new System.Drawing.Size(187, 23);
+            this.tb_password.TabIndex = 25;
             // 
-            // cb_alt_run
+            // label9
             // 
-            this.cb_alt_run.AutoSize = true;
-            this.cb_alt_run.Location = new System.Drawing.Point(12, 209);
-            this.cb_alt_run.Name = "cb_alt_run";
-            this.cb_alt_run.Size = new System.Drawing.Size(213, 20);
-            this.cb_alt_run.TabIndex = 11;
-            this.cb_alt_run.Text = "Альтернативный запуск офисов";
-            this.cb_alt_run.UseVisualStyleBackColor = true;
-            this.cb_alt_run.CheckedChanged += new System.EventHandler(this.cb_alt_run_CheckedChanged);
+            this.label9.AutoSize = true;
+            this.label9.Location = new System.Drawing.Point(463, 102);
+            this.label9.Name = "label9";
+            this.label9.Size = new System.Drawing.Size(50, 16);
+            this.label9.TabIndex = 24;
+            this.label9.Text = "Пароль";
+            // 
+            // tb_login
+            // 
+            this.tb_login.Location = new System.Drawing.Point(143, 99);
+            this.tb_login.Name = "tb_login";
+            this.tb_login.Size = new System.Drawing.Size(187, 23);
+            this.tb_login.TabIndex = 23;
+            // 
+            // label10
+            // 
+            this.label10.AutoSize = true;
+            this.label10.Location = new System.Drawing.Point(8, 102);
+            this.label10.Name = "label10";
+            this.label10.Size = new System.Drawing.Size(45, 16);
+            this.label10.TabIndex = 22;
+            this.label10.Text = "Логин";
             // 
             // Settings
             // 
@@ -572,5 +612,9 @@
         private System.Windows.Forms.Button btn_replace_connection;
         private System.Windows.Forms.CheckBox cb_alt_run;
         private System.Windows.Forms.Button btn_cansel_settings;
+        private System.Windows.Forms.TextBox tb_password;
+        private System.Windows.Forms.Label label9;
+        private System.Windows.Forms.TextBox tb_login;
+        private System.Windows.Forms.Label label10;
     }
 }

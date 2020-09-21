@@ -47,7 +47,9 @@ namespace QuickRMS.Classes
                         + "connection TEXT, "
                         + "version TEXT, "
                         + "isChain BOOLEAN, "
-                        + "coConnection TEXT)";
+                        + "coConnection TEXT, "
+                        + "login TEXT, "
+                        + "password TEXT)";
 
                     command = new SQLiteCommand(q, connection);
                     if (connection.State != System.Data.ConnectionState.Open)
@@ -70,8 +72,8 @@ namespace QuickRMS.Classes
         {
             try
             {
-                string q = @"INSERT INTO Servers ('name', 'connection', 'version', 'isChain', 'coConnection') values ("
-                    + $"'{server.Name}','{server.Connection}','{server.Version}','{server.isChain}','{server.coConnection}')";
+                string q = @"INSERT INTO Servers ('name', 'connection', 'version', 'isChain', 'coConnection', 'login', 'password') values ("
+                    + $"'{server.Name}','{server.Connection}','{server.Version}','{server.isChain}','{server.coConnection}','{server.Login}','{server.Password}')";
                 command = new SQLiteCommand(q, connection);
                 if (connection.State != System.Data.ConnectionState.Open)
                     connection.Open();
@@ -94,8 +96,8 @@ namespace QuickRMS.Classes
                 command = new SQLiteCommand(connection);
                 foreach (var server in servers)
                 {
-                    command.CommandText = @"INSERT INTO Servers ('name', 'connection', 'version', 'isChain', 'coConnection') values ("
-                        + $"'{server.Name}','{server.Connection}','{server.Version}','{server.isChain}','{server.coConnection}')";
+                    command.CommandText = @"INSERT INTO Servers ('name', 'connection', 'version', 'isChain', 'coConnection', 'login', 'password') values ("
+                        + $"'{server.Name}','{server.Connection}','{server.Version}','{server.isChain}','{server.coConnection}','{server.Login}','{server.Password}')";
                     command.ExecuteNonQuery();
                 }
                 connection.Close();
@@ -126,6 +128,8 @@ namespace QuickRMS.Classes
                     server.Version = Servers.GetString(Servers.GetOrdinal("version"));
                     server.isChain = Servers.GetString(Servers.GetOrdinal("isChain")) == true.ToString() ? true : false;
                     server.coConnection = Servers.GetString(Servers.GetOrdinal("coConnection"));
+                    server.Login = Servers.GetString(Servers.GetOrdinal("login"));
+                    server.Password = Servers.GetString(Servers.GetOrdinal("password"));
                     listServer.Add(server);
                 }
                 connection.Close();

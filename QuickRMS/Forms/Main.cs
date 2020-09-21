@@ -236,7 +236,7 @@ namespace QuickRMS.Forms
                             }
                             if (serverInfo.Name == "Login")
                             {
-                                //serverInfo.InnerText = serv.Login;
+                                serverInfo.InnerText = serv.Login;
                                 continue;
                             }
                         }
@@ -245,9 +245,9 @@ namespace QuickRMS.Forms
                 }
                 process.Start();
                 process.WaitForExit(Properties.Settings.Default.TimeStart);
-                //SendKeys.Send(serv.Pass);
+                SendKeys.Send(serv.Password);
 
-                SendKeys.Send("restoresto");
+                //SendKeys.Send("restoresto");
                 SendKeys.Send("{ENTER}");
             }
             catch (Exception ex)

@@ -1,0 +1,32 @@
+NAME;CONNECTION;VERSION;CHAIN;CO_CONNECTION;LOGIN;PASSWORD
+Сапора Итальяно ЦО;http://sap57904.54fz.club:80/resto;7.3.6017.0;True;;admin;restoresto
+Сапора итальяно Casa Italia Буденовский 49/94 (Астор)  ООО Супер Паста;http://sap57911.54fz.club:80/resto;7.3.6017.0;False;sap57904.54fz.club:80/resto;admin;restoresto
+Сапора Итальяно Горизонт Нагибина, 32д  ООО Фуд Лидер;http://sap57908.54fz.club:80/resto;7.3.6017.0;False;sap57904.54fz.club:80/resto;admin;restoresto
+Сапора Итальяно Ла Каффетерия Соколова, 17  ООО Лана;http://sap57912.54fz.club:80/resto;7.3.6017.0;False;sap57904.54fz.club:80/resto;admin;restoresto
+Сапора итальяно Магазин Мечникова,75А ИП Дудников;http://sap57906.54fz.club:80/resto;7.3.6017.0;False;sap57904.54fz.club:80/resto;admin;restoresto
+Сапора итальяно доставка кц;http://sap57913.54fz.club:80/resto;7.3.6017.0;False;sap57904.54fz.club:80/resto;admin;restoresto
+Сапора Итальяно Просекко Бар Горизонт Нагибина, 32д ООО Банкет Холл;http://sap57910.54fz.club:80/resto;7.3.6017.0;False;sap57904.54fz.club:80/resto;admin;restoresto
+Сапора Итальяно Сапора Береговая, 12 ИП Кейян;http://sap57907.54fz.club:80/resto;7.3.6017.0;False;sap57904.54fz.club:80/resto;admin;restoresto
+Сапора Итальяно Таганрог ООО БРИЗ;http://sap57909.54fz.club:80/resto;6.2.2015.0;False;sap57904.54fz.club:80/resto;admin;restoresto
+Сапора Итальяно ул.Мечникова, 75 А ООО Формула Успеха;http://sap57905.54fz.club:80/resto;7.3.6017.0;False;sap57904.54fz.club:80/resto;admin;restoresto
+Сапора Итальяно (Дольче) Dolce Sapore Горизонт Нагибина, 32д ООО Банкет Холл;http://sap57910.54fz.club:80/resto;7.3.6017.0;False;sap57904.54fz.club:80/resto;admin;restoresto
+Бейкери Проджект;http://antouan.54fz.club:80/resto;6.2.1126.0;False;;admin;restoresto
+GoldenHosre;http://goldenhorse.54fz.club:80/resto;7.3.6017.0;False;;admin;restoresto
+SmokeLab;http://smokelabpurple.54fz.club:80/resto;6.2.2015.0;False;;admin;restoresto
+ЕдаВсегда Таганрог;http://tg-evdavsegda.54fz.club:80/resto;6.2.2015.0;False;edavsegdachain.54fz.club:80/resto;admin;restoresto
+ЕдаВсегда;http://edavsegda.54fz.club:80/resto;6.2.2015.0;False;edavsegdachain.54fz.club:80/resto;admin;restoresto
+ЕдаВсегда ЦО;http://edavsegdachain.54fz.club:80/resto;6.2.2015.0;True;;admin;restoresto
+Бургер Таганрог;http://tagan.burger.54fz.club:80/resto;6.4.2014.0;False;;admin;restoresto
+Бургер Фортуна Ничаев групп;http://fortuna.burger.54fz.club:80/resto;6.1.4011.0;False;burgerchain.54fz.club:80/resto;admin;restoresto
+Причал Ничаев групп;http://prichal.54fz.club:80/resto;6.3.3014.0;False;burgerchain.54fz.club:80/resto;admin;restoresto
+Бургер Сочи Ничаев групп;http://soshi.burger.54fz.club:80/resto;6.1.4011.0;False;burgerchain.54fz.club:80/resto;admin;restoresto
+Бургер Будда Ничаев групп;http://budda.burger.54fz.club:80/resto;6.1.4011.0;False;burgerchain.54fz.club:80/resto;admin;restoresto
+Бургер ЦО Ничаев групп;http://burgerchain.54fz.club:80/resto;6.3.3014.0;True;;admin;restoresto
+Босфор;http://bosfor.54fz.club:80/resto;7.0.7007.0;False;;admin;restoresto
+Южный;http://uzjni57916.54fz.club:80/resto;6.4.3013.0;False;;admin;restoresto
+Кекс Ворошиловский, 53 и ЦО ООО Пекарь;http://keks-co-ooo-khleb-i-kofe-co.iiko.it:9080/resto;7.4.4017.0;True;;admin;restoresto
+КЕКС Газетный (ООО КРАСНИКА);https://keks-gazetniy-41.iiko.it:443/resto;7.4.4017.0;False;keks-co-ooo-khleb-i-kofe-co.iiko.it:9080/resto;admin;restoresto
+Кекс Соборный, 21 ООО Пекарь;https://keks-soborniy-21.iiko.it:443/resto;7.4.4017.0;False;keks-co-ooo-khleb-i-kofe-co.iiko.it:9080/resto;admin;restoresto
+Кекс Ворошиловский 53;https://ooo-khleb-i-kofe.iiko.it:443/resto;7.4.4017.0;False;keks-co-ooo-khleb-i-kofe-co.iiko.it:9080/resto;admin;restoresto
+Кекс Чехова/Садовая, 81 ООО Пекарь;https://keks-chekhova-sadovaya.iiko.it:443/resto;7.4.4017.0;False;keks-co-ooo-khleb-i-kofe-co.iiko.it:9080/resto;admin;restoresto
+Дикая устрица Таганрог;http://dustr42201.54fz.club:80/resto;7.0.7007.0;False;;admin;restoresto

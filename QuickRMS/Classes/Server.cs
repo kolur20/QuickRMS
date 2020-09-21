@@ -25,6 +25,12 @@ namespace QuickRMS.Classes
         [Name("CO_CONNECTION")]
         public string coConnection { get; set; }
 
-        
+        [Name("LOGIN")]
+        public string Login { get; set; }
+
+        [Name("PASSWORD")]
+        public string Password { get; set; }
+
+
     }
 }

@@ -1,46 +1,46 @@
-﻿NAME;CONNECTION;CHAIN;CO_CONNECTION;VERSION
-Сапора Итальяно ЦО;sap57904.54fz.club:80/resto;1;;
-Сапора итальяно Casa Italia Буденовский 49/94 (Астор)  ООО Супер Паста;sap57911.54fz.club:80/resto;0;sap57904.54fz.club:80/resto;
-Сапора Итальяно Горизонт Нагибина, 32д  ООО Фуд Лидер;sap57908.54fz.club:80/resto;0;sap57904.54fz.club:80/resto;
-Сапора Итальяно Ла Каффетерия Соколова, 17  ООО Лана;sap57912.54fz.club:80/resto;0;sap57904.54fz.club:80/resto;
-Сапора итальяно Магазин Мечникова,75А ИП Дудников;sap57906.54fz.club:80/resto;0;sap57904.54fz.club:80/resto;
-Сапора итальяно доставка кц;sap57913.54fz.club:80/resto;0;sap57904.54fz.club:80/resto;
-Сапора Итальяно Просекко Бар Горизонт Нагибина, 32д ООО Банкет Холл;sap57910.54fz.club:80/resto;0;sap57904.54fz.club:80/resto;
-Сапора Итальяно Сапора Береговая, 12 ИП Кейян;sap57907.54fz.club:80/resto;0;sap57904.54fz.club:80/resto;
-Сапора Итальяно Таганрог ООО БРИЗ;sap57909.54fz.club:80/resto;0;sap57904.54fz.club:80/resto;
-Сапора Итальяно ул.Мечникова, 75 А ООО Формула Успеха;sap57905.54fz.club:80/resto;0;sap57904.54fz.club:80/resto;
-Сапора Итальяно (Дольче) Dolce Sapore Горизонт Нагибина, 32д ООО Банкет Холл;sap57910.54fz.club:80/resto;0;sap57904.54fz.club:80/resto;
-Бейкери Проджект;antouan.54fz.club:80/resto;0;;
-Бар Пятница;pyatniza.54fz.club:80/resto;0;;
-GoldenHosre;goldenhorse.54fz.club:80/resto;0;;
-SmokeLab;smokelabpurple.54fz.club:80/resto;0;;
-ЕдаВсегда Красный Котельщик;tkz-evdavsegda.54fz.club;0;;
-ЕдаВсегда Таганрог;tg-evdavsegda.54fz.club:80/resto;0;edavsegdachain.54fz.club:80/resto;
-ЕдаВсегда;edavsegda.54fz.club:80/resto;0;edavsegdachain.54fz.club:80/resto;
-ЕдаВсегда ЦО;edavsegdachain.54fz.club:80/resto;1;;
-Бургер Таганрог;tagan.burger.54fz.club:80/resto;0;;
-Бургер Фортуна Ничаев групп;fortuna.burger.54fz.club:80/resto;0;burgerchain.54fz.club:80/resto;
-Причал Ничаев групп;prichal.54fz.club:80/resto;0;burgerchain.54fz.club:80/resto;
-Бургер Сочи Ничаев групп;soshi.burger.54fz.club:80/resto;0;burgerchain.54fz.club:80/resto;
-Бургер Будда Ничаев групп;budda.burger.54fz.club:80/resto;0;burgerchain.54fz.club:80/resto;
-Бургер ЦО Ничаев групп;burgerchain.54fz.club:80/resto;1;;
-Босфор;bosfor.54fz.club:80/resto;0;;
-Южный;uzjni57916.54fz.club:80/resto;0;;
-Кекс Ворошиловский, 53 и ЦО ООО Пекарь;keks-co-ooo-khleb-i-kofe-co.iiko.it:9080/resto;1;;
-КЕКС Газетный (ООО КРАСНИКА);keks-gazetniy-41.iiko.it:443/resto;0;keks-co-ooo-khleb-i-kofe-co.iiko.it:9080/resto;
-Кекс Соборный, 21 ООО Пекарь;keks-soborniy-21.iiko.it:443/resto;0;keks-co-ooo-khleb-i-kofe-co.iiko.it:9080/resto;
-Кекс Ворошиловский 53;ooo-khleb-i-kofe.iiko.it:443/resto;0;keks-co-ooo-khleb-i-kofe-co.iiko.it:9080/resto;
-Кекс Чехова/Садовая, 81 ООО Пекарь;keks-chekhova-sadovaya.iiko.it:443/resto;0;keks-co-ooo-khleb-i-kofe-co.iiko.it:9080/resto;
-Дикая устрица Таганрог;dustr42201.54fz.club:80/resto;0;;
-Три Орешка  Таганрог, ул. Греческая, д. 92;tri-oreshka-tg-grecheskaya.iiko.it:8080/resto;0;tri-oreshka-co.iiko.it:9080/resto;
-Три Орешка Чехова, д. 52;tri-oreshka-rnd-chekhova.iiko.it:8080/resto;0;tri-oreshka-co.iiko.it:9080/resto;
-Три Орешка Зорге, д. 66;tri-oreshka-rnd-zorge.iiko.it:8080/resto;0;tri-oreshka-co.iiko.it:9080/resto;
-Три Орешка Волкова, д. 6;tri-oreshka-rnd-volkova-rms.iiko.it:8080/resto;0;tri-oreshka-co.iiko.it:9080/resto;
-Три Орешка Производство(таганрог);tri-oreshka-tg-proizvodstvo.iiko.it:8080/resto;0;tri-oreshka-co.iiko.it:9080/resto;
-Три Орешка ЦО  г. Таганрог, ул. Октябрьская, 31/пер.;tri-oreshka-co.iiko.it:9080/resto;1;;
-Буфет UZ ИП Глущенко (Столовые Глущенко);bufet-uz-co.iiko.it:9080/resto;1;;
-Буфет UZ - Пятницкое шоссе;bufet-uz-pyatnickoe-shosse.iiko.it:8080/resto;0;bufet-uz-co.iiko.it:9080/resto;
-Буфет UZ - Судакова;bufet-uz.iiko.it:8080/resto;0;bufet-uz-co.iiko.it:9080/resto;
-Буфет UZ - Таллинская, 26;bufet-uz-tallinskaya-26.iiko.it:8080/resto;0;bufet-uz-co.iiko.it:9080/resto;
-Буфет UZ - Озерная ;bufet-uz-ozernaya.iiko.it:8080/resto;0;bufet-uz-co.iiko.it:9080/resto;
-Буфет UZ - Химки-Дружбы;bufet-uz-khimki-druzhbi.iiko.it:8080/resto;0;bufet-uz-co.iiko.it:9080/resto;
+﻿NAME;CONNECTION;CHAIN;CO_CONNECTION;VERSION;LOGIN;PASSWORD
+Сапора Итальяно ЦО;sap57904.54fz.club:80/resto;1;;;admin;restoresto
+Сапора итальяно Casa Italia Буденовский 49/94 (Астор)  ООО Супер Паста;sap57911.54fz.club:80/resto;0;sap57904.54fz.club:80/resto;;admin;restoresto
+Сапора Итальяно Горизонт Нагибина, 32д  ООО Фуд Лидер;sap57908.54fz.club:80/resto;0;sap57904.54fz.club:80/resto;;admin;restoresto
+Сапора Итальяно Ла Каффетерия Соколова, 17  ООО Лана;sap57912.54fz.club:80/resto;0;sap57904.54fz.club:80/resto;;admin;restoresto
+Сапора итальяно Магазин Мечникова,75А ИП Дудников;sap57906.54fz.club:80/resto;0;sap57904.54fz.club:80/resto;;admin;restoresto
+Сапора итальяно доставка кц;sap57913.54fz.club:80/resto;0;sap57904.54fz.club:80/resto;;admin;restoresto
+Сапора Итальяно Просекко Бар Горизонт Нагибина, 32д ООО Банкет Холл;sap57910.54fz.club:80/resto;0;sap57904.54fz.club:80/resto;;admin;restoresto
+Сапора Итальяно Сапора Береговая, 12 ИП Кейян;sap57907.54fz.club:80/resto;0;sap57904.54fz.club:80/resto;;admin;restoresto
+Сапора Итальяно Таганрог ООО БРИЗ;sap57909.54fz.club:80/resto;0;sap57904.54fz.club:80/resto;;admin;restoresto
+Сапора Итальяно ул.Мечникова, 75 А ООО Формула Успеха;sap57905.54fz.club:80/resto;0;sap57904.54fz.club:80/resto;;admin;restoresto
+Сапора Итальяно (Дольче) Dolce Sapore Горизонт Нагибина, 32д ООО Банкет Холл;sap57910.54fz.club:80/resto;0;sap57904.54fz.club:80/resto;;admin;restoresto
+Бейкери Проджект;antouan.54fz.club:80/resto;0;;;admin;restoresto
+Бар Пятница;pyatniza.54fz.club:80/resto;0;;;admin;restoresto
+GoldenHosre;goldenhorse.54fz.club:80/resto;0;;;admin;restoresto
+SmokeLab;smokelabpurple.54fz.club:80/resto;0;;;admin;restoresto
+ЕдаВсегда Красный Котельщик;tkz-evdavsegda.54fz.club;0;;;admin;restoresto
+ЕдаВсегда Таганрог;tg-evdavsegda.54fz.club:80/resto;0;edavsegdachain.54fz.club:80/resto;;admin;restoresto
+ЕдаВсегда;edavsegda.54fz.club:80/resto;0;edavsegdachain.54fz.club:80/resto;;admin;restoresto
+ЕдаВсегда ЦО;edavsegdachain.54fz.club:80/resto;1;;;admin;restoresto
+Бургер Таганрог;tagan.burger.54fz.club:80/resto;0;;;admin;restoresto
+Бургер Фортуна Ничаев групп;fortuna.burger.54fz.club:80/resto;0;burgerchain.54fz.club:80/resto;;admin;restoresto
+Причал Ничаев групп;prichal.54fz.club:80/resto;0;burgerchain.54fz.club:80/resto;;admin;restoresto
+Бургер Сочи Ничаев групп;soshi.burger.54fz.club:80/resto;0;burgerchain.54fz.club:80/resto;;admin;restoresto
+Бургер Будда Ничаев групп;budda.burger.54fz.club:80/resto;0;burgerchain.54fz.club:80/resto;;admin;restoresto
+Бургер ЦО Ничаев групп;burgerchain.54fz.club:80/resto;1;;;admin;restoresto
+Босфор;bosfor.54fz.club:80/resto;0;;;admin;restoresto
+Южный;uzjni57916.54fz.club:80/resto;0;;;admin;restoresto
+Кекс Ворошиловский, 53 и ЦО ООО Пекарь;keks-co-ooo-khleb-i-kofe-co.iiko.it:9080/resto;1;;;admin;restoresto
+КЕКС Газетный (ООО КРАСНИКА);keks-gazetniy-41.iiko.it:443/resto;0;keks-co-ooo-khleb-i-kofe-co.iiko.it:9080/resto;;admin;restoresto
+Кекс Соборный, 21 ООО Пекарь;keks-soborniy-21.iiko.it:443/resto;0;keks-co-ooo-khleb-i-kofe-co.iiko.it:9080/resto;;admin;restoresto
+Кекс Ворошиловский 53;ooo-khleb-i-kofe.iiko.it:443/resto;0;keks-co-ooo-khleb-i-kofe-co.iiko.it:9080/resto;;admin;restoresto
+Кекс Чехова/Садовая, 81 ООО Пекарь;keks-chekhova-sadovaya.iiko.it:443/resto;0;keks-co-ooo-khleb-i-kofe-co.iiko.it:9080/resto;;admin;restoresto
+Дикая устрица Таганрог;dustr42201.54fz.club:80/resto;0;;;admin;restoresto
+Три Орешка  Таганрог, ул. Греческая, д. 92;tri-oreshka-tg-grecheskaya.iiko.it:8080/resto;0;tri-oreshka-co.iiko.it:9080/resto;;admin;restoresto
+Три Орешка Чехова, д. 52;tri-oreshka-rnd-chekhova.iiko.it:8080/resto;0;tri-oreshka-co.iiko.it:9080/resto;;admin;restoresto
+Три Орешка Зорге, д. 66;tri-oreshka-rnd-zorge.iiko.it:8080/resto;0;tri-oreshka-co.iiko.it:9080/resto;;admin;restoresto
+Три Орешка Волкова, д. 6;tri-oreshka-rnd-volkova-rms.iiko.it:8080/resto;0;tri-oreshka-co.iiko.it:9080/resto;;admin;restoresto
+Три Орешка Производство(таганрог);tri-oreshka-tg-proizvodstvo.iiko.it:8080/resto;0;tri-oreshka-co.iiko.it:9080/resto;;admin;restoresto
+Три Орешка ЦО  г. Таганрог, ул. Октябрьская, 31/пер.;tri-oreshka-co.iiko.it:9080/resto;1;;;admin;restoresto
+Буфет UZ ИП Глущенко (Столовые Глущенко);bufet-uz-co.iiko.it:9080/resto;1;;;admin;restoresto
+Буфет UZ - Пятницкое шоссе;bufet-uz-pyatnickoe-shosse.iiko.it:8080/resto;0;bufet-uz-co.iiko.it:9080/resto;;admin;restoresto
+Буфет UZ - Судакова;bufet-uz.iiko.it:8080/resto;0;bufet-uz-co.iiko.it:9080/resto;;admin;restoresto
+Буфет UZ - Таллинская, 26;bufet-uz-tallinskaya-26.iiko.it:8080/resto;0;bufet-uz-co.iiko.it:9080/resto;;admin;restoresto
+Буфет UZ - Озерная ;bufet-uz-ozernaya.iiko.it:8080/resto;0;bufet-uz-co.iiko.it:9080/resto;;admin;restoresto
+Буфет UZ - Химки-Дружбы;bufet-uz-khimki-druzhbi.iiko.it:8080/resto;0;bufet-uz-co.iiko.it:9080/resto;;admin;restoresto
