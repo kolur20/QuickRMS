@@ -1,0 +1,5453 @@
+; <COMPILER: v1.1.30.03>
+#Persistent
+#SingleInstance force
+#MaxThreadsPerHotkey
+Class LV_Colors {
+__New(HWND, StaticMode := False, NoSort := True, NoSizing := True) {
+If (This.Base.Base.__Class)
+Return False
+If This.Attached[HWND]
+Return False
+If !DllCall("IsWindow", "Ptr", HWND)
+Return False
+VarSetCapacity(Class, 512, 0)
+DllCall("GetClassName", "Ptr", HWND, "Str", Class, "Int", 256)
+If (Class <> "SysListView32")
+Return False
+SendMessage, 0x1036, 0x010000, 0x010000, , % "ahk_id " . HWND
+SendMessage, 0x1025, 0, 0, , % "ahk_id " . HWND
+This.BkClr := ErrorLevel
+SendMessage, 0x1023, 0, 0, , % "ahk_id " . HWND
+This.TxClr := ErrorLevel
+SendMessage, 0x101F, 0, 0, , % "ahk_id " . HWND
+This.Header := ErrorLevel
+This.HWND := HWND
+This.IsStatic := !!StaticMode
+This.AltCols := False
+This.AltRows := False
+This.NoSort(!!NoSort)
+This.NoSizing(!!NoSizing)
+This.OnMessage()
+This.Critical := "Off"
+This.Attached[HWND] := True
+}
+__Delete() {
+This.Attached.Remove(HWND, "")
+This.OnMessage(False)
+WinSet, Redraw, , % "ahk_id " . This.HWND
+}
+Clear(AltRows := False, AltCols := False) {
+If (AltCols)
+This.AltCols := False
+If (AltRows)
+This.AltRows := False
+This.Remove("Rows")
+This.Remove("Cells")
+Return True
+}
+AlternateRows(BkColor := "", TxColor := "") {
+If !(This.HWND)
+Return False
+This.AltRows := False
+If (BkColor = "") && (TxColor = "")
+Return True
+BkBGR := This.BGR(BkColor)
+TxBGR := This.BGR(TxColor)
+If (BkBGR = "") && (TxBGR = "")
+Return False
+This["ARB"] := (BkBGR <> "") ? BkBGR : This.BkClr
+This["ART"] := (TxBGR <> "") ? TxBGR : This.TxClr
+This.AltRows := True
+Return True
+}
+AlternateCols(BkColor := "", TxColor := "") {
+If !(This.HWND)
+Return False
+This.AltCols := False
+If (BkColor = "") && (TxColor = "")
+Return True
+BkBGR := This.BGR(BkColor)
+TxBGR := This.BGR(TxColor)
+If (BkBGR = "") && (TxBGR = "")
+Return False
+This["ACB"] := (BkBGR <> "") ? BkBGR : This.BkClr
+This["ACT"] := (TxBGR <> "") ? TxBGR : This.TxClr
+This.AltCols := True
+Return True
+}
+SelectionColors(BkColor := "", TxColor := "") {
+If !(This.HWND)
+Return False
+This.SelColors := False
+If (BkColor = "") && (TxColor = "")
+Return True
+BkBGR := This.BGR(BkColor)
+TxBGR := This.BGR(TxColor)
+If (BkBGR = "") && (TxBGR = "")
+Return False
+This["SELB"] := BkBGR
+This["SELT"] := TxBGR
+This.SelColors := True
+Return True
+}
+Row(Row, BkColor := "", TxColor := "") {
+If !(This.HWND)
+Return False
+If This.IsStatic
+Row := This.MapIndexToID(Row)
+This["Rows"].Remove(Row, "")
+If (BkColor = "") && (TxColor = "")
+Return True
+BkBGR := This.BGR(BkColor)
+TxBGR := This.BGR(TxColor)
+If (BkBGR = "") && (TxBGR = "")
+Return False
+This["Rows", Row, "B"] := (BkBGR <> "") ? BkBGR : This.BkClr
+This["Rows", Row, "T"] := (TxBGR <> "") ? TxBGR : This.TxClr
+Return True
+}
+Cell(Row, Col, BkColor := "", TxColor := "") {
+If !(This.HWND)
+Return False
+If This.IsStatic
+Row := This.MapIndexToID(Row)
+This["Cells", Row].Remove(Col, "")
+If (BkColor = "") && (TxColor = "")
+Return True
+BkBGR := This.BGR(BkColor)
+TxBGR := This.BGR(TxColor)
+If (BkBGR = "") && (TxBGR = "")
+Return False
+If (BkBGR <> "")
+This["Cells", Row, Col, "B"] := BkBGR
+If (TxBGR <> "")
+This["Cells", Row, Col, "T"] := TxBGR
+Return True
+}
+NoSort(Apply := True) {
+If !(This.HWND)
+Return False
+If (Apply)
+This.SortColumns := False
+Else
+This.SortColumns := True
+Return True
+}
+NoSizing(Apply := True) {
+Static OSVersion := DllCall("GetVersion", "UChar")
+If !(This.Header)
+Return False
+If (Apply) {
+If (OSVersion > 5)
+Control, Style, +0x0800, , % "ahk_id " . This.Header
+This.ResizeColumns := False
+}
+Else {
+If (OSVersion > 5)
+Control, Style, -0x0800, , % "ahk_id " . This.Header
+This.ResizeColumns := True
+}
+Return True
+}
+OnMessage(Apply := True) {
+If (Apply) && !This.HasKey("OnMessageFunc") {
+This.OnMessageFunc := ObjBindMethod(This, "On_WM_Notify")
+OnMessage(0x004E, This.OnMessageFunc)
+}
+Else If !(Apply) && This.HasKey("OnMessageFunc") {
+OnMessage(0x004E, This.OnMessageFunc, 0)
+This.OnMessageFunc := ""
+This.Remove("OnMessageFunc")
+}
+WinSet, Redraw, , % "ahk_id " . This.HWND
+Return True
+}
+Static Attached := {}
+On_WM_NOTIFY(W, L, M, H) {
+Critical, % This.Critical
+If ((HCTL := NumGet(L + 0, 0, "UPtr")) = This.HWND) || (HCTL = This.Header) {
+Code := NumGet(L + (A_PtrSize * 2), 0, "Int")
+If (Code = -12)
+Return This.NM_CUSTOMDRAW(This.HWND, L)
+If !This.SortColumns && (Code = -108)
+Return 0
+If !This.ResizeColumns && ((Code = -306) || (Code = -326))
+Return True
+}
+}
+NM_CUSTOMDRAW(H, L) {
+Static SizeNMHDR := A_PtrSize * 3
+Static SizeNCD := SizeNMHDR + 16 + (A_PtrSize * 5)
+Static OffItem := SizeNMHDR + 16 + (A_PtrSize * 2)
+Static OffItemState := OffItem + A_PtrSize
+Static OffCT :=  SizeNCD
+Static OffCB := OffCT + 4
+Static OffSubItem := OffCB + 4
+DrawStage := NumGet(L + SizeNMHDR, 0, "UInt")
+, Row := NumGet(L + OffItem, "UPtr") + 1
+, Col := NumGet(L + OffSubItem, "Int") + 1
+, Item := Row - 1
+If This.IsStatic
+Row := This.MapIndexToID(Row)
+If (DrawStage = 0x030001) {
+UseAltCol := !(Col & 1) && (This.AltCols)
+, ColColors := This["Cells", Row, Col]
+, ColB := (ColColors.B <> "") ? ColColors.B : UseAltCol ? This.ACB : This.RowB
+, ColT := (ColColors.T <> "") ? ColColors.T : UseAltCol ? This.ACT : This.RowT
+, NumPut(ColT, L + OffCT, "UInt"), NumPut(ColB, L + OffCB, "UInt")
+Return (!This.AltCols && !This.HasKey(Row) && (Col > This["Cells", Row].MaxIndex())) ? 0x00 : 0x20
+}
+If (DrawStage = 0x010001) {
+If (This.SelColors) && DllCall("SendMessage", "Ptr", H, "UInt", 0x102C, "Ptr", Item, "Ptr", 0x0002, "UInt") {
+NumPut(NumGet(L + OffItemState, "UInt") & ~0x0011, L + OffItemState, "UInt")
+If (This.SELB <> "")
+NumPut(This.SELB, L + OffCB, "UInt")
+If (This.SELT <> "")
+NumPut(This.SELT, L + OffCT, "UInt")
+Return 0x02
+}
+UseAltRow := (Item & 1) && (This.AltRows)
+, RowColors := This["Rows", Row]
+, This.RowB := RowColors ? RowColors.B : UseAltRow ? This.ARB : This.BkClr
+, This.RowT := RowColors ? RowColors.T : UseAltRow ? This.ART : This.TxClr
+If (This.AltCols || This["Cells"].HasKey(Row))
+Return 0x20
+NumPut(This.RowT, L + OffCT, "UInt"), NumPut(This.RowB, L + OffCB, "UInt")
+Return 0x00
+}
+Return (DrawStage = 0x000001) ? 0x20 : 0x00
+}
+MapIndexToID(Row) {
+SendMessage, 0x10B4, % (Row - 1), 0, , % "ahk_id " . This.HWND
+Return ErrorLevel
+}
+BGR(Color, Default := "") {
+Static Integer := "Integer"
+Static HTML := {AQUA: 0xFFFF00, BLACK: 0x000000, BLUE: 0xFF0000, FUCHSIA: 0xFF00FF, GRAY: 0x808080, GREEN: 0x008000
+, LIME: 0x00FF00, MAROON: 0x000080, NAVY: 0x800000, OLIVE: 0x008080, PURPLE: 0x800080, RED: 0x0000FF
+, SILVER: 0xC0C0C0, TEAL: 0x808000, WHITE: 0xFFFFFF, YELLOW: 0x00FFFF}
+If Color Is Integer
+Return ((Color >> 16) & 0xFF) | (Color & 0x00FF00) | ((Color & 0xFF) << 16)
+Return (HTML.HasKey(Color) ? HTML[Color] : Default)
+}
+}
+XGraph( hCtrl, hBM := 0, ColumnW := 3, LTRB := "0,2,0,2", PenColor := 0x808080, PenSize := 1, SV := 0 ) {
+Static WM_SETREDRAW := 0xB, STM_SETIMAGE := 0x172, PS_SOLID := 0, cbSize := 136, SRCCOPY := 0x00CC0020
+, GPTR := 0x40, OBJ_BMP := 0x7, LR_CREATEDIBSECTION := 0x2000, LR_COPYDELETEORG := 0x8
+WinGetClass, Class,   ahk_id %hCtrl%
+Control, Style, +0x5000010E,, ahk_id %hCtrl%
+ControlGet, Style, Style,,, ahk_id %hCtrl%
+ControlGet, ExStyle, ExStyle,,, ahk_id %hCtrl%
+ControlGetPos,,, CtrlW, CtrlH,, ahk_id %hCtrl%
+If not ( Class == "Static" and Style = 0x5000010E and ExStyle = 0 and CtrlW > 0 and CtrlH > 0 )
+Return 0, ErrorLevel := -1
+If ( DllCall( "GetObjectType", "Ptr",hBM ) <> OBJ_BMP )
+hTargetBM := DllCall( "CreateBitmap", "Int",2, "Int",2, "UInt",1, "UInt",16, "Ptr",0, "Ptr" )
+,  hTargetBM := DllCall( "CopyImage", "Ptr",hTargetBM, "UInt",0, "Int",CtrlW, "Int",CtrlH
+, "UInt",LR_CREATEDIBSECTION|LR_COPYDELETEORG, "Ptr" )
+else hTargetBM := hBM
+VarSetCapacity( BITMAP,32,0 )
+DllCall( "GetObject", "Ptr",hTargetBM, "Int",( A_PtrSize = 8 ? 32 : 24 ), "Ptr",&BITMAP )
+If NumGet( BITMAP, 18, "UInt" ) < 16
+Return 0, ErrorLevel := -2
+Else BitmapW := NumGet( BITMAP,  4, "UInt" ),  BitmapH := NumGet( BITMAP, 8, "UInt" )
+If ( BitmapW <> CtrlW or BitmapH <> CtrlH )
+Return 0, ErrorLevel := -3
+StringSplit, M, LTRB, `, , %A_Space%
+MarginL := ( M1+0 < 0 ? 0 : M1 ),    MarginT     := ( M2+0 < 0 ? 0 : M2 )
+MarginR := ( M3+0 < 0 ? 0 : M3 ),    MarginB     := ( M4+0 < 0 ? 0 : M4 )
+ColumnW := ( ColumnW+0 < 0 ? 3 : ColumnW & 0xff )
+Columns := ( BitmapW - MarginL - MarginR ) // ColumnW
+BitBltW := Columns * ColumnW,                BitBltH := BitmapH - MarginT - MarginB
+MX1     := BitBltW - ColumnW,                    MY1 := BitBltH - 1
+MX2     := MX1 + ColumnW - ( PenSize < 1 )
+hSourceDC  := DllCall( "CreateCompatibleDC", "Ptr",0, "Ptr" )
+hSourceBM  := DllCall( "CopyImage", "Ptr",hTargetBM, "UInt",0, "Int",ColumnW * 2 + BitBltW
+, "Int",BitBltH, "UInt",LR_CREATEDIBSECTION, "Ptr" )
+DllCall( "SaveDC", "Ptr",hSourceDC )
+DllCall( "SelectObject", "Ptr",hSourceDC, "Ptr",hSourceBM )
+hTempDC    := DllCall( "CreateCompatibleDC", "Ptr",0, "Ptr" )
+DllCall( "SaveDC", "Ptr",hTempDC )
+DllCall( "SelectObject", "Ptr",hTempDC, "Ptr",hTargetBM )
+If ( hTargetBM <> hBM )
+hBrush := DllCall( "CreateSolidBrush", UInt,hBM & 0xFFFFFF, "Ptr" )
+, VarSetCapacity( RECT, 16, 0 )
+, NumPut( BitmapW, RECT, 8, "UInt" ),  NumPut( BitmapH, RECT,12, "UInt" )
+, DllCall( "FillRect", "Ptr",hTempDC, "Ptr",&RECT, "Ptr",hBrush )
+, DllCall( "DeleteObject", "Ptr",hBrush )
+DllCall( "BitBlt", "Ptr",hSourceDC, "Int",ColumnW * 2, "Int",0, "Int",BitBltW, "Int",BitBltH
+, "Ptr",hTempDC,   "Int",MarginL, "Int",MarginT, "UInt",SRCCOPY )
+DllCall( "BitBlt", "Ptr",hSourceDC, "Int",0, "Int",0, "Int",BitBltW, "Int",BitBltH
+, "Ptr",hTempDC,   "Int",MarginL, "Int",MarginT, "UInt",SRCCOPY )
+PenColor   := ( PenColor + 0 <> "" ? PenColor & 0xffffff : 0x808080 )
+PenSize    := ( PenSize  + 0 <> "" ? PenSize & 0xf : 1 )
+hSourcePen := DllCall( "CreatePen", "Int",PS_SOLID, "Int",PenSize, "UInt",PenColor, "Ptr" )
+DllCall( "SelectObject", "Ptr",hSourceDC, "Ptr",hSourcePen )
+DllCall( "MoveToEx", "Ptr",hSourceDC, "Int",MX1, "Int",MY1, "Ptr",0 )
+hTargetDC := DllCall( "GetDC", "Ptr",hCtrl, "Ptr" )
+DllCall( "BitBlt", "Ptr",hTargetDC, "Int",0, "Int",0, "Int",BitmapW, "Int",BitmapH
+, "Ptr",hTempDC,   "Int",0, "Int",0, "UInt",SRCCOPY )
+DllCall( "RestoreDC", "Ptr",hTempDC, "Int",-1 )
+DllCall( "DeleteDC",  "Ptr",hTempDC )
+DllCall( "SendMessage", "Ptr",hCtrl, "UInt",WM_SETREDRAW, "Ptr",False, "Ptr",0 )
+hOldBM := DllCall( "SendMessage", "Ptr",hCtrl, "UInt",STM_SETIMAGE, "Ptr",0, "Ptr",hTargetBM )
+DllCall( "SendMessage", "Ptr",hCtrl, "UInt",WM_SETREDRAW, "Ptr",True,  "Ptr",0 )
+DllCall( "DeleteObject", "Ptr",hOldBM )
+DataSz := ( SV = 1 ? Columns * 8 : 0 )
+pGraph := DllCall( "GlobalAlloc", "UInt",GPTR, "Ptr",cbSize + DataSz, "UPtr" )
+NumPut( DataSz, pGraph + cbSize - 8   )
+VarL := "cbSize / hCtrl / hTargetDC / hSourceDC / hSourceBM / hSourcePen / ColumnW / Columns / "
+. "MarginL / MarginT / MarginR / MarginB / MX1 / MX2 / BitBltW / BitBltH"
+Loop, Parse, VarL, /, %A_Space%
+NumPut( %A_LoopField%, pGraph + 0, ( A_Index - 1 ) * 8 )
+Return pGraph
+}
+XGraph_Info( pGraph, FormatFloat := "" ) {
+Static STM_GETIMAGE := 0x173
+IfEqual, pGraph, 0, Return "",    ErrorLevel := -1
+T := "`t",  TT := "`t:`t",  LF := "`n", SP := "                "
+pData := pGraph + NumGet( pGraph + 0 ), DataSz := Numget( pData-8 )
+If ( FormatFloat <> "" and DataSz )
+GoTo, XGraph_Info_Data
+VarL := "cbSize / hCtrl / hTargetDC / hSourceDC / hSourceBM / hSourcePen / ColumnW / Columns / "
+. "MarginL / MarginT / MarginR / MarginB / MX1 / MX2 / BitBltW / BitBltH"
+Loop, Parse, VarL, /, %A_Space%
+Offset := ( A_Index - 1 ) * 8,         %A_LoopField% := NumGet( pGraph + 0, OffSet )
+, RAW    .= SubStr( Offset SP,1,3 ) T SubStr( A_LoopField SP,1,16 ) T %A_LoopField% LF
+hTargetBM := DllCall( "SendMessage", "Ptr",hCtrl, "UInt",STM_GETIMAGE, "Ptr",0, "Ptr",0 )
+VarSetCapacity( BITMAP,32,0 )
+DllCall( "GetObject", "Ptr",hTargetBM, "Int",( A_PtrSize = 8 ? 32 : 24 ), "Ptr",&BITMAP )
+TBMW := NumGet( BITMAP,  4, "UInt" ),            TBMH := NumGet( BITMAP, 8, "UInt" )
+TBMB := NumGet( BITMAP, 12, "UInt" ) * TBMH,     TBMZ := Round( TBMB/1024,2 )
+TBPP := NumGet( BITMAP, 18, "UShort" )
+Adj := ( Adj := TBMW - MarginL - BitBltW - MarginR ) ? " (-" Adj ")" : ""
+DllCall( "GetObject", "Ptr",hSourceBM, "Int",( A_PtrSize = 8 ? 32 : 24 ), "Ptr",&BITMAP )
+SBMW := NumGet( BITMAP,  4, "UInt" ),            SBMH := NumGet( BITMAP, 8, "UInt" )
+SBMB := NumGet( BITMAP, 12, "UInt" ) * SBMH,     SBMZ := Round( SBMB/1024,2 )
+SBPP := NumGet( BITMAP, 18, "UShort" )
+Return "GRAPH Properties" LF LF
+. "Screen BG Bitmap   " TT TBMW ( Adj ) "x" TBMH " " TBPP "bpp ( " TBMZ " KB )" LF
+. "Margins ( L,T,R,B )" TT MarginL "," MarginT "," MarginR "," MarginB LF
+. "Client Area        " TT MarginL "," MarginT "," MarginL+BitBltW-1 "," MarginT+BitBltH-1 LF LF
+. "Memory Bitmap      " TT SBMW         "x" SBMH " " SBPP "bpp ( " SBMZ " KB )" LF
+. "Graph Width        " TT BitBltW " px ( " Columns " cols x " ColumnW " px )" LF
+. "Graph Height (MY2) " TT BitBltH " px ( y0 to y" BitBltH - 1 " )" LF
+. "Graph Array        " TT ( DataSz=0 ? "NA" : Columns " cols x 8 bytes = " DataSz " bytes" ) LF LF
+. "Pen start position " TT MX1 "," BitBltH - 1 LF
+. "LineTo position    " TT MX2 "," "MY2" LF
+. "MoveTo position    " TT MX1 "," "MY2" LF LF
+. "STRUCTURE ( Offset / Variable / Raw value )" LF LF RAW
+XGraph_Info_Data:
+AFF := A_FormatFloat
+SetFormat, FloatFast, %FormatFloat%
+Loop % DataSz // 8
+Values .= SubStr( A_Index "   ", 1, 4  ) T NumGet( pData - 8, A_Index * 8, "Double" ) LF
+SetFormat, FloatFast, %AFF%
+StringTrimRight, Values, Values, 1
+Return Values
+}
+XGraph_Plot( pGraph, MY2 := "", SetVal := "", Draw := 1 ) {
+Static SRCCOPY := 0x00CC0020
+IfEqual, pGraph, 0, Return "",    ErrorLevel := -1
+pData     := pGraph + NumGet( pGraph + 0 ),     DataSz     := Numget( pData - 8 )
+, hSourceDC := NumGet( pGraph + 24 ),             BitBltW    := NumGet( pGraph + 112 )
+, hTargetDC := NumGet( pGraph + 16 ),             BitBltH    := NumGet( pGraph + 120 )
+, ColumnW   := NumGet( pGraph + 48 )
+, MarginL   := NumGet( pGraph + 64 ),             MX1 := NumGet( pGraph + 096 )
+, MarginT   := NumGet( pGraph + 72 ),             MX2 := NumGet( pGraph + 104 )
+If not ( MY2 = "" )
+DllCall( "BitBlt", "Ptr",hSourceDC, "Int",0, "Int",0, "Int",BitBltW + ColumnW, "Int",BitBltH
+, "Ptr",hSourceDC, "Int",ColumnW, "Int",0, "UInt",SRCCOPY )
+,  DllCall( "LineTo",   "Ptr",hSourceDC, "Int",MX2, "Int",MY2 )
+,  DllCall( "MoveToEx", "Ptr",hSourceDC, "Int",MX1, "Int",MY2, "Ptr",0 )
+If ( Draw = 1 )
+DllCall( "BitBlt", "Ptr",hTargetDC, "Int",MarginL, "Int",MarginT, "Int",BitBltW, "Int",BitBltH
+, "Ptr",hSourceDC, "Int",0, "Int",0, "UInt",SRCCOPY )
+If not ( MY2 = "" or SetVal = "" or DataSz = 0 )
+DllCall( "RtlMoveMemory", "Ptr",pData, "Ptr",pData + 8, "Ptr",DataSz - 8 )
+,  NumPut( SetVal, pData + DataSz - 8, 0, "Double" )
+Return 1
+}
+XGraph_SetVal( pGraph, Double := 0, Column := "" ) {
+IfEqual, pGraph, 0, Return "",    ErrorLevel := -1
+pData := pGraph + NumGet( pGraph + 0 ), DataSz := Numget( pData - 8 )
+IfEqual, DataSz, 0, Return 0
+If ( Column = "" )
+DllCall( "RtlMoveMemory", "Ptr",pData, "Ptr",pData + 8, "Ptr",DataSz - 8 )
+, pNumPut := pData + DataSz
+else Columns := NumGet( pGraph + 56 )
+, pNumPut := pData + ( Column < 0 or Column > Columns ? Columns * 8 : Column * 8 )
+Return NumPut( Double, pNumPut - 8, 0, "Double" ) - 8
+}
+XGraph_GetVal( pGraph, Column := "" ) {
+Static RECT
+If not VarSetCapacity( RECT )
+VarSetCapacity( RECT, 16, 0 )
+IfEqual, pGraph, 0, Return "",    ErrorLevel := -1
+pData   := pGraph + NumGet( pGraph + 0 ),   DataSz  := Numget( pData - 8 )
+Columns := NumGet( pGraph + 56 )
+If not ( Column = "" or DataSz = 0 or Column < 1 or Column > Columns )
+Return NumGet( pData - 8, Column * 8, "Double" ),    ErrorLevel := Column
+hCtrl   := NumGet( pGraph + 8   ),          ColumnW := NumGet( pGraph + 48 )
+, BitBltW := NumGet( pGraph + 112 ),          MarginL := NumGet( pGraph + 64 )
+, BitBltH := NumGet( pGraph + 120 ),          MarginT := NumGet( pGraph + 72 )
+, Numput( MarginL, RECT, 0, "Int" ),          Numput( MarginT, RECT, 4, "Int" )
+, DllCall( "ClientToScreen", "Ptr",hCtrl, "Ptr",&RECT )
+, DllCall( "GetCursorPos", "Ptr",&RECT + 8 )
+, MX := NumGet( RECT, 8, "Int" ) - NumGet( RECT, 0, "Int" )
+, MY := NumGet( RECT,12, "Int" ) - NumGet( RECT, 4, "Int" )
+, Column := ( MX >= 0 and MY >= 0 and MX < BitBltW and MY < BitBltH ) ? MX // ColumnW + 1 : 0
+Return ( DataSz and Column ) ? NumGet( pData - 8, Column * 8, "Double" ) : "",    ErrorLevel := Column
+}
+XGraph_GetMean( pGraph, TailCols := "" ) {
+IfEqual, pGraph, 0, Return "",    ErrorLevel := -1
+pData := pGraph + NumGet( pGraph + 0 ), DataSz := Numget( pData - 8 )
+IfEqual, DataSz, 0, Return 0,     ErrorLevel := 0
+Columns := NumGet( pGraph + 56 )
+pDataEnd := pGraph + NumGet( pGraph + 0 ) + ( Columns * 8 )
+TailCols := ( TailCols = "" or TailCols < 1 or Tailcols > Columns ) ? Columns : TailCols
+Loop %TailCols%
+Value += NumGet( pDataEnd - ( A_Index * 8 ), 0, "Double"  )
+Return Value / TailCols,            ErrorLevel := TailCols
+}
+XGraph_Detach( pGraph ) {
+IfEqual, pGraph, 0, Return 0
+VarL := "cbSize / hCtrl / hTargetDC / hSourceDC / hSourceBM / hSourcePen"
+Loop, Parse, VarL, /, %A_Space%
+%A_LoopField% := NumGet( pGraph + 0, ( A_Index - 1 ) * 8 )
+DllCall( "ReleaseDC",    "Ptr",hCtrl, "Ptr",hTargetDC )
+DllCall( "RestoreDC",    "Ptr",hSourceDC, "Int",-1  )
+DllCall( "DeleteDC",     "Ptr",hSourceDC  )
+DllCall( "DeleteObject", "Ptr",hSourceBM  )
+DllCall( "DeleteObject", "Ptr",hSourcePen )
+Return DllCall( "GlobalFree", "Ptr",pGraph, "Ptr"  )
+}
+XGraph_MakeGrid(  CellW, CellH, Cols, Rows, GLClr, BGClr, ByRef BMPW := "", ByRef BMPH := "" ) {
+Static LR_Flag1 := 0x2008
+,  LR_Flag2 := 0x200C
+,  DC_PEN := 19
+BMPW := CellW * Cols + 1,  BMPH := CellH * Rows + 1
+hTempDC := DllCall( "CreateCompatibleDC", "Ptr",0, "Ptr" )
+DllCall( "SaveDC", "Ptr",hTempDC )
+If ( DllCall( "GetObjectType", "Ptr",BGClr ) = 0x7 )
+hTBM := DllCall( "CopyImage", "Ptr",BGClr, "Int",0, "Int",BMPW, "Int",BMPH, "UInt",LR_Flag2, "UPtr" )
+, DllCall( "SelectObject", "Ptr",hTempDC, "Ptr",hTBM )
+Else
+hTBM := DllCall( "CreateBitmap", "Int",2, "Int",2, "UInt",1, "UInt",24, "Ptr",0, "Ptr" )
+, hTBM := DllCall( "CopyImage", "Ptr",hTBM,  "Int",0, "Int",BMPW, "Int",BMPH, "UInt",LR_Flag1, "UPtr" )
+, DllCall( "SelectObject", "Ptr",hTempDC, "Ptr",hTBM )
+, hBrush := DllCall( "CreateSolidBrush", "UInt",BGClr & 0xFFFFFF, "Ptr" )
+, VarSetCapacity( RECT, 16 )
+, NumPut( BMPW, RECT, 8, "UInt" ),  NumPut( BMPH, RECT, 12, "UInt" )
+, DllCall( "FillRect", "Ptr",hTempDC, "Ptr",&RECT, "Ptr",hBrush )
+, DllCall( "DeleteObject", "Ptr",hBrush )
+hPenDC := DllCall( "GetStockObject", "Int",DC_PEN, "Ptr" )
+DllCall( "SelectObject",  "Ptr",hTempDC, "Ptr",hPenDC )
+DllCall( "SetDCPenColor", "Ptr",hTempDC, "UInt",GLClr & 0xFFFFFF )
+Loop, % Rows + 1 + ( X := Y := 0 )
+DllCall( "MoveToEx", "Ptr",hTempDC, "Int",X,    "Int",Y, "Ptr",0  )
+, DllCall( "LineTo",   "Ptr",hTempDC, "Int",BMPW, "Int",Y ),  Y := Y + CellH
+Loop, % Cols + 1 + ( X := Y := 0 )
+DllCall( "MoveToEx", "Ptr",hTempDC, "Int",X, "Int",Y, "Ptr",0 )
+, DllCall( "LineTo",   "Ptr",hTempDC, "Int",X, "Int",BMPH ),  X := X + CellW
+DllCall( "RestoreDC", "Ptr",hTempDC, "Int",-1 )
+DllCall( "DeleteDC",  "Ptr",hTempDC )
+Return hTBM
+}
+Env_UserAdd(name, value, type := "", location := ""){
+RegRead, registry, % (location == "") ? "HKEY_CURRENT_USER\Environment" : location, % name
+if (!ErrorLevel) {
+Loop, parse, registry, `;
+{
+if (A_LoopField == value)
+return -2
+}
+registry .= (registry ~= "(;$|^$)") ? "" : ";"
+value := registry . value
+}
+type := (type) ? type : (value ~= "%") ? "REG_EXPAND_SZ" : "REG_SZ"
+RegWrite, % type , % (location == "") ? "HKEY_CURRENT_USER\Environment" : location, % name, % value
+SendMessage, 0x1A,0,"Environment",, ahk_id 0xFFFF
+RefreshEnvironment()
+return (ErrorLevel) ? -1 : 0
+}
+Env_SystemAdd(name, value, type := ""){
+return (A_IsAdmin) ? Env_UserAdd(name, value, type, "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment") : -3
+}
+Env_UserSub(name, value, type := "", location := ""){
+RegRead, registry, % (location == "") ? "HKEY_CURRENT_USER\Environment" : location, % name
+if ErrorLevel
+return -2
+Loop, parse, registry, `;
+{
+if (A_LoopField != value) {
+output .= (A_Index > 1 && output != "") ? ";" : ""
+output .= A_LoopField
+}
+}
+if (output != "") {
+type := (type) ? type : (output ~= "%") ? "REG_EXPAND_SZ" : "REG_SZ"
+RegWrite, % type , % (location == "") ? "HKEY_CURRENT_USER\Environment" : location, % name, % output
+}
+else
+RegDelete, % (location == "") ? "HKEY_CURRENT_USER\Environment" : location, % name
+SendMessage, 0x1A,0,"Environment",, ahk_id 0xFFFF
+RefreshEnvironment()
+return (ErrorLevel) ? -1 : 0
+}
+Env_SystemSub(name, value, type := ""){
+return (A_IsAdmin) ? Env_UserSub(name, value, type, "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment") : -3
+}
+Env_UserNew(name, value := "", type := "", location := ""){
+type := (type) ? type : (value ~= "%") ? "REG_EXPAND_SZ" : "REG_SZ"
+RegWrite, % type , % (location == "") ? "HKEY_CURRENT_USER\Environment" : location, % name, % value
+SendMessage, 0x1A,0,"Environment",, ahk_id 0xFFFF
+RefreshEnvironment()
+return (ErrorLevel) ? -1 : 0
+}
+Env_SystemNew(name, value := "", type := ""){
+return (A_IsAdmin) ? Env_UserNew(name, value, type, "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment") : -3
+}
+Env_UserDel(name, value := "", location := ""){
+RegDelete, % (location == "") ? "HKEY_CURRENT_USER\Environment" : location, % name
+SendMessage, 0x1A,0,"Environment",, ahk_id 0xFFFF
+RefreshEnvironment()
+return 0
+}
+Env_SystemDel(name, value := ""){
+return (A_IsAdmin) ? Env_UserDel(name, value, "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment") : -3
+}
+Env_UserRead(name, value := "", location := ""){
+RegRead, registry, % (location == "") ? "HKEY_CURRENT_USER\Environment" : location, % name
+if (value) {
+Loop, parse, registry, `;
+{
+if (A_LoopField = value) {
+return A_LoopField
+}
+}
+return
+}
+return registry
+}
+Env_SystemRead(name, value := ""){
+return Env_UserRead(name, value, "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment")
+}
+Env_UserSort(name, value := "", location := ""){
+RegRead, registry, % (location == "") ? "HKEY_CURRENT_USER\Environment" : location, % name
+Sort, registry, D`;
+type := (type) ? type : (registry ~= "%") ? "REG_EXPAND_SZ" : "REG_SZ"
+RegWrite, % type , % (location == "") ? "HKEY_CURRENT_USER\Environment" : location, % name, % registry
+return (ErrorLevel) ? -1 : 0
+}
+Env_SystemSort(name, value := ""){
+return (A_IsAdmin) ? Env_UserSort(name, value, "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment") : -3
+}
+Env_UserRemoveDuplicates(name, value := "", location := ""){
+RegRead, registry, % (location == "") ? "HKEY_CURRENT_USER\Environment" : location, % name
+Sort, registry, U D`;
+type := (type) ? type : (registry ~= "%") ? "REG_EXPAND_SZ" : "REG_SZ"
+RegWrite, % type , % (location == "") ? "HKEY_CURRENT_USER\Environment" : location, % name, % registry
+return (ErrorLevel) ? -1 : 0
+}
+Env_SystemRemoveDuplicates(name, value := ""){
+return (A_IsAdmin) ? Env_UserRemoveDuplicates(name, value, "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment") : -3
+}
+Env_UserBackup(fileName := "UserEnvironment.reg", location := ""){
+_cmd .= (A_Is64bitOS <> A_PtrSize >> 3)    ? A_WinDir "\SysNative\cmd.exe"   : ComSpec
+_cmd .= " /K " Chr(0x22) "reg export " Chr(0x22)
+_cmd .= (location == "")                   ? "HKEY_CURRENT_USER\Environment" : location
+_cmd .= Chr(0x22) " " Chr(0x22)
+_cmd .= fileName
+_cmd .= Chr(0x22) . Chr(0x22) . " && pause && exit"
+try RunWait % _cmd
+catch
+return "FAIL"
+return "SUCCESS"
+}
+Env_SystemBackup(fileName := "SystemEnvironment.reg"){
+return Env_UserBackup(fileName, "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment")
+}
+Env_UserRestore(fileName := "UserEnvironment.reg"){
+try RunWait % fileName
+catch
+return "FAIL"
+return "SUCCESS"
+}
+Env_SystemRestore(fileName := "SystemEnvironment.reg"){
+try RunWait % fileName
+catch
+return "FAIL"
+return "SUCCESS"
+}
+RefreshEnvironment()
+{
+Path := ""
+PathExt := ""
+RegKeys := "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment,HKCU\Environment"
+Loop, Parse, RegKeys, CSV
+{
+Loop, Reg, %A_LoopField%, V
+{
+RegRead, Value
+If (A_LoopRegType == "REG_EXPAND_SZ" && !ExpandEnvironmentStrings(Value))
+Continue
+If (A_LoopRegName = "PATH")
+Path .= Value . ";"
+Else If (A_LoopRegName = "PATHEXT")
+PathExt .= Value . ";"
+Else
+EnvSet, %A_LoopRegName%, %Value%
+}
+}
+EnvSet, PATH, %Path%
+EnvSet, PATHEXT, %PathExt%
+}
+ExpandEnvironmentStrings(ByRef vInputString)
+{
+vSizeNeeded := DllCall("ExpandEnvironmentStrings", "Str", vInputString, "Int", 0, "Int", 0)
+If (vSizeNeeded == "" || vSizeNeeded <= 0)
+return False
+vByteSize := vSizeNeeded + 1
+If (A_IsUnicode) {
+vByteSize *= 2
+}
+VarSetCapacity(vTempValue, vByteSize, 0)
+If (!DllCall("ExpandEnvironmentStrings", "Str", vInputString, "Str", vTempValue, "Int", vSizeNeeded))
+return False
+vInputString := vTempValue
+Return True
+}
+RPath_Absolute(AbsolutPath, RelativePath, s="\") {
+len := InStr(AbsolutPath, s, "", InStr(AbsolutPath, s . s) + 2) - 1
+pr := SubStr(AbsolutPath, 1, len)
+AbsolutPath := SubStr(AbsolutPath, len + 1)
+If InStr(AbsolutPath, s, "", 0) = StrLen(AbsolutPath)
+StringTrimRight, AbsolutPath, AbsolutPath, 1
+If InStr(RelativePath, s) = 1
+AbsolutPath := "", RelativePath := SubStr(RelativePath, 2)
+Else If InStr(RelativePath,"." s) = 1
+RelativePath := SubStr(RelativePath, 3)
+Else If InStr(RelativePath,".." s) = 1 {
+StringReplace, RelativePath, RelativePath, ..%s%, , UseErrorLevel
+Loop, %ErrorLevel%
+AbsolutPath := SubStr(AbsolutPath, 1, InStr(AbsolutPath, s, "", 0) - 1)
+} Else
+pr := "", AbsolutPath := "", s := ""
+Return, pr . AbsolutPath . s . RelativePath
+}
+Free(byRef var)
+{
+VarSetCapacity(var,0)
+return
+}
+CryptConst(name)
+{
+ALG_CLASS_ANY := (0)
+ALG_CLASS_SIGNATURE := (1 << 13)
+ALG_CLASS_MSG_ENCRYPT := (2 << 13)
+ALG_CLASS_DATA_ENCRYPT := (3 << 13)
+ALG_CLASS_HASH := (4 << 13)
+ALG_CLASS_KEY_EXCHANGE := (5 << 13)
+ALG_CLASS_ALL := (7 << 13)
+ALG_TYPE_ANY := (0)
+ALG_TYPE_DSS := (1 << 9)
+ALG_TYPE_RSA := (2 << 9)
+ALG_TYPE_BLOCK := (3 << 9)
+ALG_TYPE_STREAM := (4 << 9)
+ALG_TYPE_DH := (5 << 9)
+ALG_TYPE_SECURECHANNEL := (6 << 9)
+ALG_SID_ANY := (0)
+ALG_SID_RSA_ANY := 0
+ALG_SID_RSA_PKCS := 1
+ALG_SID_RSA_MSATWORK := 2
+ALG_SID_RSA_ENTRUST := 3
+ALG_SID_RSA_PGP := 4
+ALG_SID_DSS_ANY := 0
+ALG_SID_DSS_PKCS := 1
+ALG_SID_DSS_DMS := 2
+ALG_SID_ECDSA := 3
+ALG_SID_DES := 1
+ALG_SID_3DES := 3
+ALG_SID_DESX := 4
+ALG_SID_IDEA := 5
+ALG_SID_CAST := 6
+ALG_SID_SAFERSK64 := 7
+ALG_SID_SAFERSK128 := 8
+ALG_SID_3DES_112 := 9
+ALG_SID_CYLINK_MEK := 12
+ALG_SID_RC5 := 13
+ALG_SID_AES_128 := 14
+ALG_SID_AES_192 := 15
+ALG_SID_AES_256 := 16
+ALG_SID_AES := 17
+ALG_SID_SKIPJACK := 10
+ALG_SID_TEK := 11
+CRYPT_MODE_CBCI := 6
+CRYPT_MODE_CFBP := 7
+CRYPT_MODE_OFBP := 8
+CRYPT_MODE_CBCOFM := 9
+CRYPT_MODE_CBCOFMI := 10
+ALG_SID_RC2 := 2
+ALG_SID_RC4 := 1
+ALG_SID_SEAL := 2
+ALG_SID_DH_SANDF := 1
+ALG_SID_DH_EPHEM := 2
+ALG_SID_AGREED_KEY_ANY := 3
+ALG_SID_KEA := 4
+ALG_SID_ECDH := 5
+ALG_SID_MD2 := 1
+ALG_SID_MD4 := 2
+ALG_SID_MD5 := 3
+ALG_SID_SHA := 4
+ALG_SID_SHA1 := 4
+ALG_SID_MAC := 5
+ALG_SID_RIPEMD := 6
+ALG_SID_RIPEMD160 := 7
+ALG_SID_SSL3SHAMD5 := 8
+ALG_SID_HMAC := 9
+ALG_SID_TLS1PRF := 10
+ALG_SID_HASH_REPLACE_OWF := 11
+ALG_SID_SHA_256 := 12
+ALG_SID_SHA_384 := 13
+ALG_SID_SHA_512 := 14
+ALG_SID_SSL3_MASTER := 1
+ALG_SID_SCHANNEL_MASTER_HASH := 2
+ALG_SID_SCHANNEL_MAC_KEY := 3
+ALG_SID_PCT1_MASTER := 4
+ALG_SID_SSL2_MASTER := 5
+ALG_SID_TLS1_MASTER := 6
+ALG_SID_SCHANNEL_ENC_KEY := 7
+ALG_SID_ECMQV := 1
+ALG_SID_EXAMPLE := 80
+CALG_MD2 := (ALG_CLASS_HASH | ALG_TYPE_ANY | ALG_SID_MD2)
+CALG_MD4 := (ALG_CLASS_HASH | ALG_TYPE_ANY | ALG_SID_MD4)
+CALG_MD5 := (ALG_CLASS_HASH | ALG_TYPE_ANY | ALG_SID_MD5)
+CALG_SHA := (ALG_CLASS_HASH | ALG_TYPE_ANY | ALG_SID_SHA)
+CALG_SHA1 := (ALG_CLASS_HASH | ALG_TYPE_ANY | ALG_SID_SHA1)
+CALG_MAC := (ALG_CLASS_HASH | ALG_TYPE_ANY | ALG_SID_MAC)
+CALG_RSA_SIGN := (ALG_CLASS_SIGNATURE | ALG_TYPE_RSA | ALG_SID_RSA_ANY)
+CALG_DSS_SIGN := (ALG_CLASS_SIGNATURE | ALG_TYPE_DSS | ALG_SID_DSS_ANY)
+CALG_NO_SIGN := (ALG_CLASS_SIGNATURE | ALG_TYPE_ANY | ALG_SID_ANY)
+CALG_RSA_KEYX := (ALG_CLASS_KEY_EXCHANGE|ALG_TYPE_RSA|ALG_SID_RSA_ANY)
+CALG_DES := (ALG_CLASS_DATA_ENCRYPT|ALG_TYPE_BLOCK|ALG_SID_DES)
+CALG_3DES_112 := (ALG_CLASS_DATA_ENCRYPT|ALG_TYPE_BLOCK|ALG_SID_3DES_112)
+CALG_3DES := (ALG_CLASS_DATA_ENCRYPT|ALG_TYPE_BLOCK|ALG_SID_3DES)
+CALG_DESX := (ALG_CLASS_DATA_ENCRYPT|ALG_TYPE_BLOCK|ALG_SID_DESX)
+CALG_RC2 := (ALG_CLASS_DATA_ENCRYPT|ALG_TYPE_BLOCK|ALG_SID_RC2)
+CALG_RC4 := (ALG_CLASS_DATA_ENCRYPT|ALG_TYPE_STREAM|ALG_SID_RC4)
+CALG_SEAL := (ALG_CLASS_DATA_ENCRYPT|ALG_TYPE_STREAM|ALG_SID_SEAL)
+CALG_DH_SF := (ALG_CLASS_KEY_EXCHANGE|ALG_TYPE_DH|ALG_SID_DH_SANDF)
+CALG_DH_EPHEM := (ALG_CLASS_KEY_EXCHANGE|ALG_TYPE_DH|ALG_SID_DH_EPHEM)
+CALG_AGREEDKEY_ANY := (ALG_CLASS_KEY_EXCHANGE|ALG_TYPE_DH|ALG_SID_AGREED_KEY_ANY)
+CALG_KEA_KEYX := (ALG_CLASS_KEY_EXCHANGE|ALG_TYPE_DH|ALG_SID_KEA)
+CALG_HUGHES_MD5 := (ALG_CLASS_KEY_EXCHANGE|ALG_TYPE_ANY|ALG_SID_MD5)
+CALG_SKIPJACK := (ALG_CLASS_DATA_ENCRYPT|ALG_TYPE_BLOCK|ALG_SID_SKIPJACK)
+CALG_TEK := (ALG_CLASS_DATA_ENCRYPT|ALG_TYPE_BLOCK|ALG_SID_TEK)
+CALG_CYLINK_MEK := (ALG_CLASS_DATA_ENCRYPT|ALG_TYPE_BLOCK|ALG_SID_CYLINK_MEK)
+CALG_SSL3_SHAMD5 := (ALG_CLASS_HASH | ALG_TYPE_ANY | ALG_SID_SSL3SHAMD5)
+CALG_SSL3_MASTER := (ALG_CLASS_MSG_ENCRYPT|ALG_TYPE_SECURECHANNEL|ALG_SID_SSL3_MASTER)
+CALG_SCHANNEL_MASTER_HASH := (ALG_CLASS_MSG_ENCRYPT|ALG_TYPE_SECURECHANNEL|ALG_SID_SCHANNEL_MASTER_HASH)
+CALG_SCHANNEL_MAC_KEY := (ALG_CLASS_MSG_ENCRYPT|ALG_TYPE_SECURECHANNEL|ALG_SID_SCHANNEL_MAC_KEY)
+CALG_SCHANNEL_ENC_KEY := (ALG_CLASS_MSG_ENCRYPT|ALG_TYPE_SECURECHANNEL|ALG_SID_SCHANNEL_ENC_KEY)
+CALG_PCT1_MASTER := (ALG_CLASS_MSG_ENCRYPT|ALG_TYPE_SECURECHANNEL|ALG_SID_PCT1_MASTER)
+CALG_SSL2_MASTER := (ALG_CLASS_MSG_ENCRYPT|ALG_TYPE_SECURECHANNEL|ALG_SID_SSL2_MASTER)
+CALG_TLS1_MASTER := (ALG_CLASS_MSG_ENCRYPT|ALG_TYPE_SECURECHANNEL|ALG_SID_TLS1_MASTER)
+CALG_RC5 := (ALG_CLASS_DATA_ENCRYPT|ALG_TYPE_BLOCK|ALG_SID_RC5)
+CALG_HMAC := (ALG_CLASS_HASH | ALG_TYPE_ANY | ALG_SID_HMAC)
+CALG_TLS1PRF := (ALG_CLASS_HASH | ALG_TYPE_ANY | ALG_SID_TLS1PRF)
+CALG_HASH_REPLACE_OWF := (ALG_CLASS_HASH | ALG_TYPE_ANY | ALG_SID_HASH_REPLACE_OWF)
+CALG_AES_128 := (ALG_CLASS_DATA_ENCRYPT|ALG_TYPE_BLOCK|ALG_SID_AES_128)
+CALG_AES_192 := (ALG_CLASS_DATA_ENCRYPT|ALG_TYPE_BLOCK|ALG_SID_AES_192)
+CALG_AES_256 := (ALG_CLASS_DATA_ENCRYPT|ALG_TYPE_BLOCK|ALG_SID_AES_256)
+CALG_AES := (ALG_CLASS_DATA_ENCRYPT|ALG_TYPE_BLOCK|ALG_SID_AES)
+CALG_SHA_256 := (ALG_CLASS_HASH | ALG_TYPE_ANY | ALG_SID_SHA_256)
+CALG_SHA_384 := (ALG_CLASS_HASH | ALG_TYPE_ANY | ALG_SID_SHA_384)
+CALG_SHA_512 := (ALG_CLASS_HASH | ALG_TYPE_ANY | ALG_SID_SHA_512)
+CALG_ECDH := (ALG_CLASS_KEY_EXCHANGE | ALG_TYPE_DH | ALG_SID_ECDH)
+CALG_ECMQV := (ALG_CLASS_KEY_EXCHANGE | ALG_TYPE_ANY | ALG_SID_ECMQV)
+CALG_ECDSA := (ALG_CLASS_SIGNATURE | ALG_TYPE_DSS | ALG_SID_ECDSA)
+CRYPT_VERIFYCONTEXT := 0xF0000000
+CRYPT_NEWKEYSET := 0x00000008
+CRYPT_DELETEKEYSET := 0x00000010
+CRYPT_MACHINE_KEYSET := 0x00000020
+CRYPT_SILENT := 0x00000040
+CRYPT_DEFAULT_CONTAINER_OPTIONAL := 0x00000080
+CRYPT_EXPORTABLE := 0x00000001
+CRYPT_USER_PROTECTED := 0x00000002
+CRYPT_CREATE_SALT := 0x00000004
+CRYPT_UPDATE_KEY := 0x00000008
+CRYPT_NO_SALT := 0x00000010
+CRYPT_PREGEN := 0x00000040
+CRYPT_RECIPIENT := 0x00000010
+CRYPT_INITIATOR := 0x00000040
+CRYPT_ONLINE := 0x00000080
+CRYPT_SF := 0x00000100
+CRYPT_CREATE_IV := 0x00000200
+CRYPT_KEK := 0x00000400
+CRYPT_DATA_KEY := 0x00000800
+CRYPT_VOLATILE := 0x00001000
+CRYPT_SGCKEY := 0x00002000
+CRYPT_ARCHIVABLE := 0x00004000
+CRYPT_FORCE_KEY_PROTECTION_HIGH := 0x00008000
+RSA1024BIT_KEY := 0x04000000
+CRYPT_SERVER := 0x00000400
+KEY_LENGTH_MASK := 0xFFFF0000
+CRYPT_Y_ONLY := 0x00000001
+CRYPT_SSL2_FALLBACK := 0x00000002
+CRYPT_DESTROYKEY := 0x00000004
+CRYPT_OAEP := 0x00000040
+CRYPT_BLOB_VER3 := 0x00000080
+CRYPT_IPSEC_HMAC_KEY := 0x00000100
+CRYPT_DECRYPT_RSA_NO_PADDING_CHECK := 0x00000020
+CRYPT_SECRETDIGEST := 0x00000001
+CRYPT_OWF_REPL_LM_HASH := 0x00000001
+CRYPT_LITTLE_ENDIAN := 0x00000001
+CRYPT_NOHASHOID := 0x00000001
+CRYPT_TYPE2_FORMAT := 0x00000002
+CRYPT_X931_FORMAT := 0x00000004
+CRYPT_MACHINE_DEFAULT := 0x00000001
+CRYPT_USER_DEFAULT := 0x00000002
+CRYPT_DELETE_DEFAULT := 0x00000004
+SIMPLEBLOB := 0x1
+PUBLICKEYBLOB := 0x6
+PRIVATEKEYBLOB := 0x7
+PLAINTEXTKEYBLOB := 0x8
+OPAQUEKEYBLOB := 0x9
+PUBLICKEYBLOBEX := 0xA
+SYMMETRICWRAPKEYBLOB := 0xB
+KEYSTATEBLOB := 0xC
+AT_KEYEXCHANGE := 1
+AT_SIGNATURE := 2
+CRYPT_USERDATA := 1
+KP_IV := 1
+KP_SALT := 2
+KP_PADDING := 3
+KP_MODE := 4
+KP_MODE_BITS := 5
+KP_PERMISSIONS := 6
+KP_ALGID := 7
+KP_BLOCKLEN := 8
+KP_KEYLEN := 9
+KP_SALT_EX := 10
+KP_P := 11
+KP_G := 12
+KP_Q := 13
+KP_X := 14
+KP_Y := 15
+KP_RA := 16
+KP_RB := 17
+KP_INFO := 18
+KP_EFFECTIVE_KEYLEN := 19
+KP_SCHANNEL_ALG := 20
+KP_CLIENT_RANDOM := 21
+KP_SERVER_RANDOM := 22
+KP_RP := 23
+KP_PRECOMP_MD5 := 24
+KP_PRECOMP_SHA := 25
+KP_CERTIFICATE := 26
+KP_CLEAR_KEY := 27
+KP_PUB_EX_LEN := 28
+KP_PUB_EX_VAL := 29
+KP_KEYVAL := 30
+KP_ADMIN_PIN := 31
+KP_KEYEXCHANGE_PIN := 32
+KP_SIGNATURE_PIN := 33
+KP_PREHASH := 34
+KP_ROUNDS := 35
+KP_OAEP_PARAMS := 36
+KP_CMS_KEY_INFO := 37
+KP_CMS_DH_KEY_INFO := 38
+KP_PUB_PARAMS := 39
+KP_VERIFY_PARAMS := 40
+KP_HIGHEST_VERSION := 41
+KP_GET_USE_COUNT := 42
+KP_PIN_ID := 43
+KP_PIN_INFO := 44
+HP_ALGID := 0x0001
+HP_HASHVAL := 0x0002
+HP_HASHSIZE := 0x0004
+HP_HMAC_INFO := 0x0005
+HP_TLS1PRF_LABEL := 0x0006
+HP_TLS1PRF_SEED := 0x0007
+PROV_RSA_FULL := 1
+PROV_RSA_SIG := 2
+PROV_DSS := 3
+PROV_FORTEZZA := 4
+PROV_MS_EXCHANGE := 5
+PROV_SSL := 6
+PROV_RSA_SCHANNEL := 12
+PROV_DSS_DH := 13
+PROV_EC_ECDSA_SIG := 14
+PROV_EC_ECNRA_SIG := 15
+PROV_EC_ECDSA_FULL := 16
+PROV_EC_ECNRA_FULL := 17
+PROV_DH_SCHANNEL := 18
+PROV_SPYRUS_LYNKS := 20
+PROV_RNG := 21
+PROV_INTEL_SEC := 22
+PROV_REPLACE_OWF := 23
+PROV_RSA_AES := 24
+PROV_STT_MER := 7
+PROV_STT_ACQ := 8
+PROV_STT_BRND := 9
+PROV_STT_ROOT := 10
+PROV_STT_ISS := 11
+StringReplace,name,name,`n,`,,1
+IfInString, name,,
+{
+arr := {}
+StringSplit,const,name,`,,%A_TAB%%A_SPACE%`n
+loop,%const0%
+{
+v := const%A_Index%
+if !v
+continue
+arr[v] := %v%
+}
+return arr
+}
+else
+{
+p := %name%
+if (p = "")
+p = err
+return p
+}
+}
+class Crypt
+{
+class Encrypt
+{
+static StrEncoding := "UTF-16"
+static PassEncoding := "UTF-16"
+StrDecryptToFile(EncryptedHash,pFileOut,password,CryptAlg = 1, HashAlg = 1)
+{
+if !EncryptedHash
+return ""
+if !len := HashToByte(EncryptedHash,encr_Buf)
+return ""
+temp_file := "crypt.temp"
+f := FileOpen(temp_file,"w","CP0")
+if !IsObject(f)
+return ""
+if !f.RawWrite(encr_Buf,len)
+return ""
+f.close()
+bytes := this._Encrypt( p, pp, password, 0, temp_file, pFileOut, CryptAlg, HashAlg )
+FileDelete,% temp_file
+return bytes
+}
+FileEncryptToStr(pFileIn,password,CryptAlg = 1, HashAlg = 1)
+{
+temp_file := "crypt.temp"
+if !this._Encrypt( p, pp, password, 1, pFileIn, temp_file, CryptAlg, HashAlg )
+return ""
+f := FileOpen(temp_file,"r","CP0")
+if !IsObject(f)
+{
+FileDelete,% temp_file
+return ""
+}
+fLen := f.Length
+VarSetCapacity(tembBuf,fLen,0)
+if !f.RawRead(tembBuf,fLen)
+{
+Free(tembBuf)
+return ""
+}
+f.Close()
+FileDelete,% temp_file
+return ByteToHash(tembBuf,fLen)
+}
+FileEncrypt(pFileIn,pFileOut,password,CryptAlg = 1, HashAlg = 1)
+{
+return this._Encrypt( p, pp, password, 1, pFileIn, pFileOut, CryptAlg, HashAlg )
+}
+FileDecrypt(pFileIn,pFileOut,password,CryptAlg = 1, HashAlg = 1)
+{
+return this._Encrypt( p, pp, password, 0, pFileIn, pFileOut, CryptAlg, HashAlg )
+}
+StrEncrypt(string,password,CryptAlg = 1, HashAlg = 1)
+{
+len := StrPutVar(string, str_buf,100,this.StrEncoding)
+if this._Encrypt(str_buf,len, password, 1,0,0,CryptAlg,HashAlg)
+return ByteToHash(str_buf,len)
+else
+return ""
+}
+StrDecrypt(EncryptedHash,password,CryptAlg = 1, HashAlg = 1)
+{
+if !EncryptedHash
+return ""
+if !len := HashToByte(EncryptedHash,encr_Buf)
+return 0
+if this._Encrypt(encr_Buf,len, password, 0,0,0,CryptAlg,HashAlg)
+return strget(&encr_Buf,this.StrEncoding)
+else
+return ""
+}
+_Encrypt(ByRef encr_Buf,ByRef Buf_Len, password, mode, pFileIn=0, pFileOut=0, CryptAlg = 1,HashAlg = 1)
+{
+c =
+			(
+			CALG_MD5,CALG_MD2,CALG_SHA,CALG_SHA_256,CALG_SHA_384,CALG_SHA_512
+			CALG_RC4,CALG_RC2,CALG_3DES,CALG_3DES_112,CALG_AES_128,CALG_AES_192,CALG_AES_256
+			PROV_RSA_AES,CRYPT_VERIFYCONTEXT,KP_BLOCKLEN
+)
+c := CryptConst(c)
+CUR_PWD_HASH_ALG := HashAlg==1?c.CALG_MD5
+:HashAlg==2?c.CALG_MD2
+:HashAlg==3?c.CALG_SHA
+:HashAlg==4?c.CALG_SHA_256
+:HashAlg==5?c.CALG_SHA_384
+:HashAlg==6?c.CALG_SHA_512
+:0
+CUR_ENC_ALG 	:= CryptAlg==1?c.CALG_RC4
+:CryptAlg==2?c.CALG_RC2
+:CryptAlg==3?c.CALG_3DES
+:CryptAlg==4?c.CALG_3DES_112
+:CryptAlg==5?c.CALG_AES_128
+:CryptAlg==6?c.CALG_AES_192
+:CryptAlg==7?c.CALG_AES_256
+:0
+KEY_LENGHT 		:= CryptAlg==1?0x80
+:CryptAlg==2?0x80
+:CryptAlg==3?0xC0
+:CryptAlg==4?0x80
+:CryptAlg==5?0x80
+:CryptAlg==6?0xC0
+:CryptAlg==7?0x100
+:0
+KEY_LENGHT <<= 16
+if (CUR_PWD_HASH_ALG = 0 || CUR_ENC_ALG = 0)
+return 0
+if !dllCall("Advapi32\CryptAcquireContextW","Ptr*",hCryptProv,"Uint",0,"Uint",0,"Uint",c.PROV_RSA_AES,"UInt",c.CRYPT_VERIFYCONTEXT)
+{foo := "CryptAcquireContextW", err := GetLastError(), err2 := ErrorLevel
+GoTO FINITA_LA_COMEDIA
+}
+if !dllCall("Advapi32\CryptCreateHash","Ptr",hCryptProv,"Uint",CUR_PWD_HASH_ALG,"Uint",0,"Uint",0,"Ptr*",hHash )
+{foo := "CryptCreateHash", err := GetLastError(), err2 := ErrorLevel
+GoTO FINITA_LA_COMEDIA
+}
+passLen := StrPutVar(password, passBuf,0,this.PassEncoding) - (this.PassEncoding = "UTF-16" ? 2 : 1)
+if !dllCall("Advapi32\CryptHashData","Ptr",hHash,"Ptr",&passBuf,"Uint",passLen,"Uint",0 )
+{foo := "CryptHashData", err := GetLastError(), err2 := ErrorLevel
+GoTO FINITA_LA_COMEDIA
+}
+if !dllCall("Advapi32\CryptDeriveKey","Ptr",hCryptProv,"Uint",CUR_ENC_ALG,"Ptr",hHash,"Uint",KEY_LENGHT,"Ptr*",hKey )
+{foo := "CryptDeriveKey", err := GetLastError(), err2 := ErrorLevel
+GoTO FINITA_LA_COMEDIA
+}
+if !dllCall("Advapi32\CryptGetKeyParam","Ptr",hKey,"Uint",c.KP_BLOCKLEN,"Uint*",BlockLen,"Uint*",dwCount := 4,"Uint",0)
+{foo := "CryptGetKeyParam", err := GetLastError(), err2 := ErrorLevel
+GoTO FINITA_LA_COMEDIA
+}
+BlockLen /= 8
+if (mode == 1)
+{
+if (pFileIn && pFileOut)
+{
+ReadBufSize := 10240 - mod(10240,BlockLen==0?1:BlockLen )
+pfin := FileOpen(pFileIn,"r","CP0")
+pfout := FileOpen(pFileOut,"w","CP0")
+if !IsObject(pfin)
+{foo := "File Opening " . pFileIn
+GoTO FINITA_LA_COMEDIA
+}
+if !IsObject(pfout)
+{foo := "File Opening " . pFileOut
+GoTO FINITA_LA_COMEDIA
+}
+VarSetCapacity(ReadBuf,ReadBufSize+BlockLen,0)
+isFinal := 0
+hModule := DllCall("LoadLibrary", "Str", "Advapi32.dll","UPtr")
+CryptEnc := DllCall("GetProcAddress", "Ptr", hModule, "AStr", "CryptEncrypt","UPtr")
+while !pfin.AtEOF
+{
+BytesRead := pfin.RawRead(ReadBuf, ReadBufSize)
+if pfin.AtEOF
+isFinal := 1
+if !dllCall(CryptEnc
+,"Ptr",hKey
+,"Ptr",0
+,"Uint",isFinal
+,"Uint",0
+,"Ptr",&ReadBuf
+,"Uint*",BytesRead
+,"Uint",ReadBufSize+BlockLen )
+{foo := "CryptEncrypt", err := GetLastError(), err2 := ErrorLevel
+GoTO FINITA_LA_COMEDIA
+}
+pfout.RawWrite(ReadBuf,BytesRead)
+Buf_Len += BytesRead
+}
+DllCall("FreeLibrary", "Ptr", hModule)
+pfin.Close()
+pfout.Close()
+}
+else
+{
+if !dllCall("Advapi32\CryptEncrypt"
+,"Ptr",hKey
+,"Ptr",0
+,"Uint",1
+,"Uint",0
+,"Ptr",&encr_Buf
+,"Uint*",Buf_Len
+,"Uint",Buf_Len + BlockLen )
+{foo := "CryptEncrypt", err := GetLastError(), err2 := ErrorLevel
+GoTO FINITA_LA_COMEDIA
+}
+}
+}
+else if (mode == 0)
+{
+if (pFileIn && pFileOut)
+{
+ReadBufSize := 10240 - mod(10240,BlockLen==0?1:BlockLen )
+pfin := FileOpen(pFileIn,"r","CP0")
+pfout := FileOpen(pFileOut,"w","CP0")
+if !IsObject(pfin)
+{foo := "File Opening " . pFileIn
+GoTO FINITA_LA_COMEDIA
+}
+if !IsObject(pfout)
+{foo := "File Opening " . pFileOut
+GoTO FINITA_LA_COMEDIA
+}
+VarSetCapacity(ReadBuf,ReadBufSize+BlockLen,0)
+isFinal := 0
+hModule := DllCall("LoadLibrary", "Str", "Advapi32.dll","UPtr")
+CryptDec := DllCall("GetProcAddress", "Ptr", hModule, "AStr", "CryptDecrypt","UPtr")
+while !pfin.AtEOF
+{
+BytesRead := pfin.RawRead(ReadBuf, ReadBufSize)
+if pfin.AtEOF
+isFinal := 1
+if !dllCall(CryptDec
+,"Ptr",hKey
+,"Ptr",0
+,"Uint",isFinal
+,"Uint",0
+,"Ptr",&ReadBuf
+,"Uint*",BytesRead )
+{foo := "CryptDecrypt", err := GetLastError(), err2 := ErrorLevel
+GoTO FINITA_LA_COMEDIA
+}
+pfout.RawWrite(ReadBuf,BytesRead)
+Buf_Len += BytesRead
+}
+DllCall("FreeLibrary", "Ptr", hModule)
+pfin.Close()
+pfout.Close()
+}
+else if !dllCall("Advapi32\CryptDecrypt"
+,"Ptr",hKey
+,"Ptr",0
+,"Uint",1
+,"Uint",0
+,"Ptr",&encr_Buf
+,"Uint*",Buf_Len )
+{foo := "CryptDecrypt", err := GetLastError(), err2 := ErrorLevel
+GoTO FINITA_LA_COMEDIA
+}
+}
+FINITA_LA_COMEDIA:
+dllCall("Advapi32\CryptDestroyKey","Ptr",hKey )
+dllCall("Advapi32\CryptDestroyHash","Ptr",hHash)
+dllCall("Advapi32\CryptReleaseContext","Ptr",hCryptProv,"UInt",0)
+if (A_ThisLabel = "FINITA_LA_COMEDIA")
+{
+if (A_IsCompiled = 1)
+return ""
+else
+msgbox % foo " call failed with:`nErrorLevel: " err2 "`nLastError: " err "`n" ErrorFormat(err)
+return ""
+}
+return Buf_Len
+}
+}
+class Hash
+{
+static StrEncoding := "CP0"
+static PassEncoding := "UTF-16"
+FileHash(pFile,HashAlg = 1,pwd = "",hmac_alg = 1)
+{
+return this._CalcHash(p,pp,pFile,HashAlg,pwd,hmac_alg)
+}
+StrHash(string,HashAlg = 1,pwd = "",hmac_alg = 1)
+{
+buf_len := StrPutVar(string, buf,0,this.StrEncoding)
+return this._CalcHash(buf,buf_len,0,HashAlg,pwd,hmac_alg)
+}
+_CalcHash(ByRef bBuffer,BufferLen,pFile,HashAlg = 1,pwd = "",hmac_alg = 1)
+{
+c =
+			(
+			CALG_MD5,CALG_MD2,CALG_SHA,CALG_SHA_256,CALG_SHA_384,CALG_SHA_512
+			CALG_RC4,CALG_RC2,CALG_3DES,CALG_3DES_112,CALG_AES_128,CALG_AES_192,CALG_AES_256
+			PROV_RSA_AES,CRYPT_VERIFYCONTEXT,HP_HASHVAL,HP_HASHSIZE,CALG_HMAC,HP_HMAC_INFO
+)
+c := CryptConst(c)
+HASH_ALG := HashAlg==1?c.CALG_MD5
+:HashAlg==2?c.CALG_MD2
+:HashAlg==3?c.CALG_SHA
+:HashAlg==4?c.CALG_SHA_256
+:HashAlg==5?c.CALG_SHA_384
+:HashAlg==6?c.CALG_SHA_512
+:0
+HMAC_KEY_ALG 	:= hmac_alg==1?c.CALG_RC4
+:hmac_alg==2?c.CALG_RC2
+:hmac_alg==3?c.CALG_3DES
+:hmac_alg==4?c.CALG_3DES_112
+:hmac_alg==5?c.CALG_AES_128
+:hmac_alg==6?c.CALG_AES_192
+:hmac_alg==7?c.CALG_AES_256
+:0
+KEY_LENGHT 		:= hmac_alg==1?0x80
+:hmac_alg==2?0x80
+:hmac_alg==3?0xC0
+:hmac_alg==4?0x80
+:hmac_alg==5?0x80
+:hmac_alg==6?0xC0
+:hmac_alg==7?0x100
+:0
+KEY_LENGHT <<= 16
+if (!HASH_ALG || !HMAC_KEY_ALG)
+return 0
+if !dllCall("Advapi32\CryptAcquireContextW","Ptr*",hCryptProv,"Uint",0,"Uint",0,"Uint",c.PROV_RSA_AES,"UInt",c.CRYPT_VERIFYCONTEXT )
+{foo := "CryptAcquireContextW", err := GetLastError(), err2 := ErrorLevel
+GoTO FINITA_DA_COMEDIA
+}
+if !dllCall("Advapi32\CryptCreateHash","Ptr",hCryptProv,"Uint",HASH_ALG,"Uint",0,"Uint",0,"Ptr*",hHash )
+{foo := "CryptCreateHash1", err := GetLastError(), err2 := ErrorLevel
+GoTO FINITA_DA_COMEDIA
+}
+if (pwd != "")
+{
+passLen := StrPutVar(pwd, passBuf,0,this.PassEncoding) - (this.PassEncoding = "UTF-16" ? 2 : 1)
+if !dllCall("Advapi32\CryptHashData","Ptr",hHash,"Ptr",&passBuf,"Uint",passLen,"Uint",0 )
+{foo := "CryptHashData Pwd", err := GetLastError(), err2 := ErrorLevel
+GoTO FINITA_DA_COMEDIA
+}
+if !dllCall("Advapi32\CryptDeriveKey","Ptr",hCryptProv,"Uint",HMAC_KEY_ALG,"Ptr",hHash,"Uint",KEY_LENGHT,"Ptr*",hKey )
+{foo := "CryptDeriveKey Pwd", err := GetLastError(), err2 := ErrorLevel
+GoTO FINITA_DA_COMEDIA
+}
+dllCall("Advapi32\CryptDestroyHash","Ptr",hHash)
+if !dllCall("Advapi32\CryptCreateHash","Ptr",hCryptProv,"Uint",c.CALG_HMAC,"Ptr",hKey,"Uint",0,"Ptr*",hHash )
+{foo := "CryptCreateHash2", err := GetLastError(), err2 := ErrorLevel
+GoTO FINITA_DA_COMEDIA
+}
+VarSetCapacity(HmacInfoStruct,4*A_PtrSize + 4,0)
+NumPut(HASH_ALG,HmacInfoStruct,0,"UInt")
+if !dllCall("Advapi32\CryptSetHashParam","Ptr",hHash,"Uint",c.HP_HMAC_INFO,"Ptr",&HmacInfoStruct,"Uint",0)
+{foo := "CryptSetHashParam", err := GetLastError(), err2 := ErrorLevel
+GoTO FINITA_DA_COMEDIA
+}
+}
+if pFile
+{
+f := FileOpen(pFile,"r","CP0")
+BUFF_SIZE := 1024 * 1024
+if !IsObject(f)
+{foo := "File Opening"
+GoTO FINITA_DA_COMEDIA
+}
+if !hModule := DllCall( "GetModuleHandleW", "str", "Advapi32.dll", "UPtr" )
+hModule := DllCall( "LoadLibraryW", "str", "Advapi32.dll", "UPtr" )
+hCryptHashData := DllCall("GetProcAddress", "Ptr", hModule, "AStr", "CryptHashData", "UPtr")
+VarSetCapacity(read_buf,BUFF_SIZE,0)
+While (cbCount := f.RawRead(read_buf, BUFF_SIZE))
+{
+if (cbCount = 0)
+break
+if !dllCall(hCryptHashData
+,"Ptr",hHash
+,"Ptr",&read_buf
+,"Uint",cbCount
+,"Uint",0 )
+{foo := "CryptHashData", err := GetLastError(), err2 := ErrorLevel
+GoTO FINITA_DA_COMEDIA
+}
+}
+f.Close()
+}
+else
+{
+if !dllCall("Advapi32\CryptHashData"
+,"Ptr",hHash
+,"Ptr",&bBuffer
+,"Uint",BufferLen
+,"Uint",0 )
+{foo := "CryptHashData", err := GetLastError(), err2 := ErrorLevel
+GoTO FINITA_DA_COMEDIA
+}
+}
+if !dllCall("Advapi32\CryptGetHashParam","Ptr",hHash,"Uint",c.HP_HASHSIZE,"Uint*",HashLen,"Uint*",HashLenSize := 4,"UInt",0 )
+{foo := "CryptGetHashParam HP_HASHSIZE", err := GetLastError(), err2 := ErrorLevel
+GoTO FINITA_DA_COMEDIA
+}
+VarSetCapacity(pbHash,HashLen,0)
+if !dllCall("Advapi32\CryptGetHashParam","Ptr",hHash,"Uint",c.HP_HASHVAL,"Ptr",&pbHash,"Uint*",HashLen,"UInt",0 )
+{foo := "CryptGetHashParam HP_HASHVAL", err := GetLastError(), err2 := ErrorLevel
+GoTO FINITA_DA_COMEDIA
+}
+hashval := ByteToHash(pbHash,HashLen)
+FINITA_DA_COMEDIA:
+DllCall("FreeLibrary", "Ptr", hModule)
+dllCall("Advapi32\CryptDestroyHash","Ptr",hHash)
+dllCall("Advapi32\CryptDestroyKey","Ptr",hKey )
+dllCall("Advapi32\CryptReleaseContext","Ptr",hCryptProv,"UInt",0)
+if (A_ThisLabel = "FINITA_LA_COMEDIA")
+{
+if (A_IsCompiled = 1)
+return ""
+else
+msgbox % foo " call failed with:`nErrorLevel: " err2 "`nLastError: " err "`n" ErrorFormat(err)
+return 0
+}
+return hashval
+}
+}
+}
+ByteToHash(ByRef pbData,dwLen)
+{
+if (dwLen < 1)
+return 0
+if pbData is integer
+ptr := pbData
+else
+ptr := &pbData
+SetFormat,integer,Hex
+loop,%dwLen%
+{
+num := numget(ptr+0,A_index-1,"UChar")
+hash .= substr((num >> 4),0) . substr((num & 0xf),0)
+}
+SetFormat,integer,D
+return hash
+}
+HashToByte(sHash,ByRef ByteBuf)
+{
+if (sHash == "" || RegExMatch(sHash,"[^\dABCDEF]") || mod(StrLen(sHash),2))
+return 0
+BufLen := StrLen(sHash)/2
+VarSetCapacity(ByteBuf,BufLen,0)
+loop,%BufLen%
+{
+num1 := (p := "0x" . SubStr(sHash,(A_Index-1)*2+1,1)) << 4
+num2 := "0x" . SubStr(sHash,(A_Index-1)*2+2,1)
+num := num1 | num2
+NumPut(num,ByteBuf,A_Index-1,"UChar")
+}
+return BufLen
+}
+GetLastError()
+{
+return DecToHex(A_LastError < 0 ? A_LastError & 0xFFFFFFFF : A_LastError)
+}
+DecToHex(num)
+{
+if num is not integer
+return num
+Loop
+{
+hn := ChHex(mod(num,16))
+hex_val := hn . hex_val
+if !(num := num//16)
+{
+hex_val := "0x" . hex_val
+break
+}
+}
+return hex_val
+}
+ChHex(numb)
+{
+return numb==10?"A"
+:numb==11?"B"
+:numb==12?"C"
+:numb==13?"D"
+:numb==14?"E"
+:numb==15?"F"
+:numb
+}
+ErrorFormat(error_id)
+{
+VarSetCapacity(msg,1000,0)
+if !len := DllCall("FormatMessageW"
+,"UInt",FORMAT_MESSAGE_FROM_SYSTEM := 0x00001000 | FORMAT_MESSAGE_IGNORE_INSERTS := 0x00000200
+,"Ptr",0
+,"UInt",error_id
+,"UInt",0
+,"Ptr",&msg
+,"UInt",500)
+return
+return 	strget(&msg,len)
+}
+StrPutVar(string, ByRef var, addBufLen = 0,encoding="UTF-16")
+{
+str_len := StrPut(string, encoding) * ((encoding="utf-16"||encoding="cp1200") ? 2 : 1)
+VarSetCapacity( var, str_len + addBufLen,0 )
+StrPut(string, &var, encoding)
+return str_len
+}
+SetKeySalt(hKey,hProv)
+{
+KP_SALT_EX := 10
+SALT := "89ABF9C1005EDD40"
+len := HashToByte(SALT,pb)
+VarSetCapacity(st,2*A_PtrSize,0)
+NumPut(len,st,0,"UInt")
+NumPut(&pb,st,A_PtrSize,"UPtr")
+if !dllCall("Advapi32\CryptSetKeyParam"
+,"Ptr",hKey
+,"Uint",KP_SALT_EX
+,"Ptr",&st
+,"Uint",0)
+msgbox % ErrorFormat(GetLastError())
+}
+GetKeySalt(hKey)
+{
+KP_IV := 1
+KP_SALT := 2
+if !dllCall("Advapi32\CryptGetKeyParam"
+,"Ptr",hKey
+,"Uint",KP_SALT
+,"Uint",0
+,"Uint*",dwCount
+,"Uint",0)
+msgbox % "Fail to get SALT length."
+msgbox % "SALT length.`n" dwCount
+VarSetCapacity(pb,dwCount,0)
+if !dllCall("Advapi32\CryptGetKeyParam"
+,"Ptr",hKey
+,"Uint",KP_SALT
+,"Ptr",&pb
+,"Uint*",dwCount
+,"Uint",0)
+msgbox % "Fail to get SALT"
+msgbox % ByteToHash(pb,dwCount) "`n" dwCount
+}
+UriEncode(Uri, Enc = "UTF-8")
+{
+Len := StrPut(Uri, Enc) * (Enc = "UTF-16" || Enc = "CP1200" ? 2 : 1)
+VarSetCapacity(Var, Len, 0)
+StrPut(Uri, &Var, Enc)
+f := A_FormatInteger
+SetFormat, IntegerFast, H
+Loop
+{
+Code := NumGet(Var, A_Index - 1, "UChar")
+If (!Code)
+Break
+If (Code >= 0x30 && Code <= 0x39
+|| Code >= 0x41 && Code <= 0x5A
+|| Code >= 0x61 && Code <= 0x7A)
+Res .= Chr(Code)
+Else
+Res .= "%" . SubStr(Code + 0x100, -1)
+}
+SetFormat, IntegerFast, %f%
+Return, Res
+}
+UriDecode(Uri, Enc = "UTF-8")
+{
+Pos := 1
+Loop
+{
+Pos := RegExMatch(Uri, "i)(?:%[\da-f]{2})+", Code, Pos++)
+If (Pos = 0)
+Break
+VarSetCapacity(Var, StrLen(Code) // 3, 0)
+StringTrimLeft, Code, Code, 1
+Loop, Parse, Code, `%
+NumPut("0x" . A_LoopField, Var, A_Index - 1, "UChar")
+StringReplace, Uri, Uri, `%%Code%, % StrGet(&Var, Enc), All
+}
+Return, Uri
+}
+Gui, Add, Edit, w170 vMyEdit gMyEditEnt hwndEC1, сервер:порт
+Gui, Add, Edit, w160 x730 y6  vSrBox gSrbox,
+Gui, Add, ListView,y32 x10 r20 w531 gMyListView vMyListView, ТИП|Версия|Путь
+Gui, Add, ListView,y32 x552 r20 w167  gMyListView1 vMyListView1 , RDP
+Gui, Add, ListView,y32 x730 r20 w600 h690 Grid -Multi +hscroll BackgroundD3E1FD AltSubmit gMyListView2 vMyListView2 hwndHLV, Clients|Lic|Name|Ver|St|X
+Gui Add, GroupBox, x8 y408 w165 h226, Лицензии
+Gui Add, GroupBox, x192 y408 w165 h226, Диагностика
+Gui Add, GroupBox, x377 y408 w165 h226, Тулзы
+Gui Add, Text, x16 y454 w153 h23 +0x200,Список активных лицензий
+Gui Add, Text, x16 y+25 w153 h23 +0x200,Список текущих лицензий
+Gui Add, Text, x16 y+25 w153 h23 +0x200,Обновить текущие лицензии
+Gui Add, Text, x201 y454 w153 h23 +0x200,Версия+Статус+Имя сервера
+Gui Add, Text, x201 y+25 w153 h23 +0x200,HDD+RAM+Инфа по докам
+Gui Add, Text, x201 y+25 w153 h23 +0x200,Инфа по iiko.biz
+Gui Add, Text, x201 y+25 w153 h23 +0x200,Запросы Groovy
+Gui Add, Text, x386 y454 w153 h23 +0x200,Перезапуск очереди
+Gui Add, Text, x386 y+25 w153 h23 +0x200,Открытие вебморды
+Gui Add, Text, x386 y+25 w153 h23 +0x200,Запуск мусорщика явы
+Gui Add, Text, x386 y+25 w153 h23 +0x200,Полный реэкспорт в биз
+Gui, Add, StatusBar,,
+SB_SetParts(150,150,700,300,40)
+colorconstr:
+{
+CLV := New LV_Colors(HLV)
+CLV.Critical := 100
+If !IsObject(CLV) {
+MsgBox, 0, ERROR, Couldn't create a new LV_Colors object!
+}
+}
+Gui, Add, Button,x190  y5 , Подключиться
+Gui, Add, Button,X900  y5 , C
+Gui, Add, Button,X1235 y5 , Del
+Gui, Add, Button,X1200 y5 , Add
+Gui, Add, Button,X1165 y5 , Edit
+Gui, Add, Button,X1130 y5 vDEV , =V=
+Gui Font, s15
+Gui Add, CheckBox, x1090 y5 w32 h23 -Checked  vXDel gfXDel, X
+Gui Font
+Gui, Add, Button,X1270 y5 gUp , Обновить
+Gui, Add, Button,x14 y430 w71 h23 , Активность
+Gui, Add, Button,x14 y+25 w71 h23 , Лицензия
+Gui, Add, Button,x14 y+25 w79 h23 , Обновить Лиц
+Gui, Add, Button,X199  y430 w71 h23 , Версия
+Gui, Add, Button,X199  y+25 w71 h23 , Health
+Gui, Add, Button,X199  y+25 w71 h23 , Iiko.Biz
+Gui, Add, Button,X199  y+25 w71 h23 , Groovy
+Gui, Add, Button,x384  y430 w71 h23 , ResetMq
+Gui, Add, Button,X384  y+25 w71 h23 , WEB
+Gui, Add, Button,X384  y+25 w71 h23 , MemClean
+Gui, Add, Button,X384  y+25 w71 h23 , Forceload
+Gui, ListView, MyListView
+global arrayuser := []
+global arraypass := []
+global arUsHelp := ["admin","admin","admin","lemma","lemma","lemma","lemma","lemma","lemma","Admin2"]
+global arPsHelp := ["resto#test","2700805","systempos","2700805","systempos","3030300","302927","3141516","181189","2700805"]
+global site
+global sern
+global sver
+global port
+global MyProg := 0
+global inafbro
+global passcount
+global whr := ComObjCreate("WinHttp.WinHttpRequest.5.1")
+global sqlgroovy
+global Username
+global Password
+global countcheck
+global sclogin
+global mainpath := "\BacksIikoLemma\"
+global icon := A_AppData mainpath "lemma-group.ico"
+global temps :=         "\BacksIikoLemma\temp.csv"
+global pathtoclients := "\BacksIikoLemma\Clients.csv"
+global pathtocly := A_AppData pathtoclients
+global pathtopass :=    "\BacksIikoLemma\pass.csv"
+global pathtopasscr :=    "\BacksIikoLemma\pass.cr"
+global pathtoback :=    "\BackOffice.exe"
+global rdp  :=    "\прочее\RDP\"
+global configfile :=    "\BacksIikoLemma\config.ini"
+global log :=           "\BacksIikoLemma\info.log"
+global logs :=          A_AppData log
+global pathtordp := A_WorkingDir rdp
+global pathtosqlexe := A_AppData mainpath "SQLSync.exe"
+global pathtosqlconfig := A_AppData mainpath "SQLSync.exe.config"
+global fpNotcr := A_AppData pathtopass
+global fpcr := A_AppData pathtopasscr
+global RArch := A_AppData mainpath "RequestArchive\"
+global mpwad := A_AppData mainpath "\temp\SQLSync.exe.config"
+global passtocr := "62 61 6e 64 67 69 68 61 6e 64 67 69"
+global passtopass := A_DD A_Mon A_YEAR
+global monitorram
+global monitorcon
+global progresbar
+global revisionCSV
+global log_time :=
+global ArrayMON:=[]
+global ArrayIDL:=[]
+global ArrayLic:=[]
+global ArrayBusy:=[]
+global ArrayCount:=[]
+global ArrayDatefrom:=[]
+global ArrayDateto:=[]
+global ed:=
+global statusLVCL := 1
+global stopformon
+global tHDD
+global tJAV
+global MEMU
+global tPerM
+global progvers = 8.0
+SB_SetText(progvers,5)
+global broken:=0
+global WorkonSQL
+global workinpass:=0
+global XDel :=0
+global XName:=[]
+global XLic :=[]
+global XDopN:=[]
+global XVer :=[]
+global Xx   :=[]
+global timegr
+global SCVER
+global silenterrcon:=0
+global fasttiming :=0
+WM_Command(wp,lp)
+{
+global EC1
+If (lp=EC1) AND (wp>>16 = 0x100)
+PostMessage, 0xB1,,-1,,ahk_id %lp%
+}
+installLogo()
+{
+IfExist  %icon%
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [loadtrayform] File icon already exist `n,%logs%
+Else
+{
+FileInstall, Components\lemma-group.ico, %icon%, 1
+if ErrorLevel
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [loadtrayform] Create File icon is Succses `n,%logs%
+Else
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : WARN [loadtrayform] Create File icon is FAIL `n,%logs%
+}
+}
+BestGroovyReq(req,file="",param=2,full=false)
+{
+SB_SetText("Начало выполнения Groovy")
+Try
+{
+if param=1
+{
+SB_SetText("Выбран тип - Запрос лога")
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [BestGroovyReq] Select param=1 (log req) `n,%logs%
+jsp:="script=print+%22cmd+%2Fc+dir+%3E+listmyfolder.txt%22.execute%28%29&action=start"
+reqpath=%sqlgroovy%%jsp%
+Try
+{
+SB_SetText("Попытка соединения - для получения пути до папки логов #1")
+whr.Open("GET",reqpath, false)
+whr.Send()
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [BestGroovyReq] get respons #1 for path of %file% is Saccses    `n,%logs%
+SB_SetText("Попытка соединения - для получения пути до папки логов #1 - УСПЕШНО")
+}
+Catch e
+{
+MsgBox, 16,, % "Exception thrown!`n`nwhat: " e.what "`nfile: " e.file
+. "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
+e:="Element " e.what " with message =  " e.message " in line = " e.line
+SB_SetText("Попытка соединения - для получения пути до папки логов #1 - ОШИБКА " e)
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : WARN [BestGroovyReq] get %file% PATH is FAIL for response #1   cos.: %e%  `n,%logs%
+return, Result
+}
+Sleep, 1500
+jsp:="script=print+%22cmd+%2Fc+type+listmyfolder.txt%22.execute%28%29.text&action=start"
+reqpath=%sqlgroovy%%jsp%
+Try
+{
+SB_SetText("Попытка соединения - для получения пути до папки логов #2")
+whr.Open("GET",reqpath, false)
+whr.Send()
+textRes:= whr.ResponseText
+SB_SetText("Попытка соединения - для получения пути до папки логов #2 - УСПЕШНО")
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [BestGroovyReq] get respons #2 for path of %file% is Saccses    `n,%logs%
+}
+Catch e
+{
+MsgBox, 16,, % "Exception thrown!`n`nwhat: " e.what "`nfile: " e.file
+. "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
+e:="Element " e.what " with message =  " e.message " in line = " e.line
+SB_SetText("Попытка соединения - для получения пути до папки логов #1 - ОШИБКА " e)
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : WARN [BestGroovyReq] get %file% PATH is FAIL for response #2  cos.: %e%  `n,%logs%
+return, Result
+}
+SB_SetText("Парсим текст запроса и преобразовываем ответ в путь до папки")
+stringreplace,textRes,textRes,<td>`r`n,,all
+stringreplace,textRes,textRes,</td>`r`n,,all
+stringreplace,textRes,textRes,<tr>`r`n,,all
+stringreplace,textRes,textRes,</tr>`r`n,,all
+stringreplace,textRes,textRes,<td style="text-align: right">`r`n,,all
+stringreplace,textRes,textRes,`r,,all
+stringreplace,textRes,textRes,`r`n,,all
+stringreplace,textRes,textRes,title=",,all
+stringreplace,textRes,textRes,</th>`n,,all
+PathL:=
+loop, parse, textRes,`n
+{
+if InStr(A_LoopField,"\Tomcat9") OR InStr(A_LoopField,"\Tomcat7") OR InStr(A_LoopField,"\Tomcat8")
+{
+co:=A_Index
+PathL=%A_LoopField%
+}
+}
+copoz:= RegExMatch(PathL,"\s\D\:\\")
+copoz++
+PathL:= SubStr(PathL,copoz)
+stringreplace,PathL,PathL,`r,,all
+stringreplace,PathL,PathL,`r`n,,all
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [BestGroovyReq] PATH to %file% = %PathL%`n,%logs%
+if instr(PathL,"\Tomcat7")
+{
+RegExMatch(PathL,"(.*Tomcat7)", SubPat)
+PathL:=SubPat1
+stringreplace,PathL,PathL,\,\\,all
+stringreplace,PathL,PathL,\\Tomcat7,\\logs\\%file%,all
+}
+if instr(PathL,"\Tomcat8")
+{
+RegExMatch(PathL,"(.*Tomcat8)", SubPat)
+PathL:=SubPat1
+stringreplace,PathL,PathL,\,\\,all
+stringreplace,PathL,PathL,\\Tomcat8,\\logs\\%file%,all
+}
+if instr(PathL,"\Tomcat9")
+{
+RegExMatch(PathL,"(.*Tomcat9)", SubPat)
+PathL:=SubPat1
+stringreplace,PathL,PathL,\,\\,all
+stringreplace,PathL,PathL,\\Tomcat9,\\logs\\%file%,all
+}
+if StrLen(PathL)<10
+{
+Throw { what: "Ошибка получения пути до файл лога", file: A_LineFile, line: A_LineNumber }
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : WARN [BestGroovyReq]  Ошибка получения пути до файл лога  `n,%logs%
+SB_SetText("Ошибка получения пути до файл лога")
+return, Result=error
+}
+req:=
+if full
+{
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [BestGroovyReq] is full `n,%logs%
+req =new File('%PathL%').eachLine {lastLine = it}
+SB_SetText("Обнаружен параметр фулл лога")
+}
+Else
+req =String fileContents = new File('%PathL%').text
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [BestGroovyReq] After replace is- %req%  `n,%logs%
+}
+if param = 2
+{
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [BestGroovyReq] Select param=2  (defaut req) `n,%logs%
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [BestGroovyReq] Before URL %req% `n,%logs%
+SB_SetText("Выбран тип - Ручной запрос")
+}
+SB_SetText("Преобразовываем запрос " req " в URL")
+Resultt:=UriEncode(req)
+plus:="%20"
+dot:="%2E"
+stringreplace,Resultt,Resultt,%dot%,.,all
+stringreplace,Resultt,Resultt,%plus%,+,all
+req1=%sqlgroovy%script=%Resultt%&action=start
+SB_SetText("URL запрос " req1)
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [BestGroovyReq] %req1% `n,%logs%
+Try
+{
+SB_SetText("Попытка проведения запроса")
+whr.Open("GET",req1, false)
+whr.Send()
+MtextRes:= whr.ResponseText
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [BestGroovyReq] get ResponseText is Saccses `n,%logs%
+SB_SetText("Попытка проведения запроса - УСПЕШНО")
+}
+Catch e
+{
+MsgBox, 16,, % "Exception thrown!`n`nwhat: " e.what "`nfile: " e.file
+. "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
+e:="Element " e.what " with message =  " e.message " in line = " e.line
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : WARN [BestGroovyReq] get ResponseText is FAIL cos.: %e%  `n,%logs%
+Result:=e.message
+SB_SetText("Попытка проведения запроса - ОШИБКА " e)
+return, Result
+}
+if param=2
+{
+SB_SetText("Парсинг ручного запроса")
+loop, parse, MtextRes,`n
+{
+if InStr(A_LoopField,"<pre>Output:")
+{
+co:=A_Index
+co++
+RESLOG=Output: `n
+loop, parse, MtextRes,`n
+{
+if InStr(A_LoopField,"</div>")
+break
+if inStr(A_LoopField,"</pre><pre>Bindings:")
+{
+StringReplace NewS, A_LoopField,</pre><pre>Bindings:,`n`nBindings:,All
+RESLOG=%RESLOG%%NewS%`n
+SB_SetText(RESLOG)
+Continue
+}
+if inStr(A_LoopField,"</pre><pre>")
+{
+StringReplace NewS, A_LoopField,</pre><pre>,`n,All
+RESLOG=%RESLOG%%NewS%`n
+SB_SetText(RESLOG)
+Continue
+}
+if inStr(A_LoopField,"</pre>")
+{
+StringReplace NewS, A_LoopField,</pre>,,All
+RESLOG=%RESLOG%%NewS%`n
+SB_SetText(RESLOG)
+Continue
+}
+if A_index >= %co%
+{
+RESLOG=%RESLOG%%A_LoopField%`n
+SB_SetText(RESLOG)
+}
+}
+}
+}
+}
+Else
+{
+SB_SetText("Парсинг запроса лога")
+loop, parse, MtextRes,`n
+{
+if InStr(A_LoopField,"<pre>Output:")
+{
+co:=A_Index
+co++
+loop, parse, MtextRes,`n
+{
+if InStr(A_LoopField,"</div>")
+break
+if InStr(A_LoopField,"</pre><pre>Result:") OR InStr(A_LoopField,"</pre><pre>Bindings:") OR InStr(A_LoopField,"em=")
+Continue
+if A_index >= %co%
+{
+RESLOG=%RESLOG%%A_LoopField%`n
+}
+}
+}
+}
+}
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [BestGroovyReq] !Modify result is ENDED `n,%logs%
+}
+Catch e
+{
+MsgBox, 16,, % "Exception thrown!`n`nwhat: " e.what "`nfile: " e.file
+. "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
+e:="Element " e.what " with message =  " e.message " in line = " e.line
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : WARN [BestGroovyReq] get %file% PATH is FAIL   cos.: %e%  `n,%logs%
+Result:=e.message
+SB_SetText("ОШИБКА Выполнения GROOVY " e)
+return, Result
+}
+SB_SetText("Конец выполнения Groovy")
+Return, RESLOG
+}
+installSQLSync()
+{
+try
+{
+FileInstall, SQLSync.exe, %pathtosqlexe%, 1
+if FileExist(pathtosqlconfig)
+{
+mpwadd := A_AppData mainpath "\temp\"
+FileCreateDir, %mpwadd%
+FileInstall, SQLSync.exe.config, %mpwad%, 1
+IniRead, OutputVar,%A_AppData%%configfile%, Base, SCVER
+CSoldVER:=OutputVar
+Loop, Read, %mpwad%
+{
+if InStr(A_LoopReadLine,"Version SQLSync")
+{
+RegExMatch(A_LoopReadLine,"\d+\.\d+",SCVER)
+break
+}
+}
+FileDelete, %mpwad%
+FileRemoveDir, %mpwadd%
+if CSoldVER < %SCVER%
+{
+IniWrite,%SCVER%, %A_AppData%%configfile%, Base, SCVER
+FileInstall, SQLSync.exe.config, %pathtosqlconfig%, 1
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [FileInstall] Find new version config  `n,%logs%
+}
+}
+Else
+{
+FileInstall, SQLSync.exe.config, %pathtosqlconfig%, 1
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [FileInstall] Config was empty,then create  `n,%logs%
+}
+}
+Catch e
+{
+e:="Element " e.what " with message =  " e.message " in line = " e.line
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : WARN [FileInstall] Error unpack of config. %e%  `n,%logs%
+}
+}
+envsetforpass()
+{
+if (WorkonSQL=1) AND (workinpass=0)
+{
+out := Env_UserRead("pass_for_ahk")
+FileSetAttrib, -R, %fpcr%
+FileSetAttrib, -R, %fpNotcr%
+if FileExist(fpcr)
+FileDelete, %fpcr%
+if FileExist(fpNotcr)
+FileDelete, %fpNotcr%
+FileAppend, , %fpNotcr%
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [envsetforpass] update file %A_AppData%%pathtopass% is STARTED `n,%logs%
+FileAppend,%out%,%fpNotcr%
+Crypt.Encrypt.FileEncrypt(fpNotcr,fpcr,passtocr,3,1)
+filedelete %fpNotcr%
+SetTimer, Penvsetforpass, 60000
+}
+Else
+{
+SetTimer, Penvsetforpass, 5000
+}
+return
+}
+greenwichtimeget()
+{
+SB_SetText("",3)
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [greenwichtimeget] Started get time  `n,%logs%
+connections=https://time.is/ru/GMT
+Try
+{
+whr.Open("GET",connections, false)
+whr.Send()
+texttime:= whr.ResponseText
+f =<time id="clock">
+loop, parse, texttime,`n
+{
+if l:= InStr(texttime,f)
+{
+l:=l+17
+timegr := SubStr(texttime,l, 8)
+timegr :=RegExReplace(timegr,":","")
+timegr := A_Year A_Mon A_DD timegr
+break
+}
+}
+if timegr=""
+throw { what: "Поменялся php https://time.is/ru/GMT ", file: A_LineFile, line: A_LineNumber }
+}
+catch e
+{
+e:="Element " e.what " with message =  " e.message " in line = " e.line
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : WARN [greenwichtimeget] get time is FAIL cos.: %e%  `n,%logs%
+SB_SetParts(150,150,700,300,40)
+SB_SetText("SQLSync остановлена. Не получено время. ",3)
+WorkonSQL:=0
+SetTimer CheckSqlSyncExist, 20
+return
+}
+Finally
+{
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [greenwichtimeget] get time is %timegr%  `n,%logs%
+}
+return [timegr]
+}
+iterationREV()
+{
+greenwichtimeget()
+if (WorkonSQL=1) AND NOT(timegr="")
+{
+IniRead, OutputVar,%A_AppData%%configfile%, Base, revisionCSV
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [iterationREV] ITERATION REVISION. OLD = %OutputVar%  `n,%logs%
+OutputVar:= timegr
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [iterationREV] ITERATION COMPLETE. NEW = %OutputVar%  `n,%logs%
+IniWrite, %OutputVar%, %A_AppData%%configfile%, Base, revisionCSV
+}
+else
+{
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : WARN [iterationREV] ITERATION REVISION.BREAK cos.: WorkonSQL = %WorkonSQL% AND  timegr=%timegr% timegr must be not empty   `n,%logs%
+}
+}
+searchinlic(MySrcS)
+{
+Gui Submit, NoHide
+Gui ListView, MLV
+srArr:=[]
+Length := StrLen(MySrcS)
+if NOT(MySrcS="") and (Length >= 2)
+{
+i:=0
+Gui ListView, MLV
+Loop % LV_GetCount()
+{
+LV_GetText(RowText1,A_Index,1)
+LV_GetText(RowText2,A_Index,2)
+LV_GetText(RowText3,A_Index,3)
+LV_GetText(RowText4,A_Index,4)
+LV_GetText(RowText5,A_Index,5)
+LV_GetText(RowText6,A_Index,6)
+if InStr(RowText1,MySrcS,false) OR InStr(RowText2,MySrcS,false)
+{
+i++
+srArr[i]:=[RowText1,RowText2,RowText3,RowText4,RowText5,RowText6]
+ed := 1
+}
+}
+if ed=1
+{
+LV_Delete()
+For i, element in srArr
+{
+LV_Add("",srArr[i][1],srArr[i][2],srArr[i][3],srArr[i][4],srArr[i][5],srArr[i][6])
+}
+}
+}
+Else
+{
+if (ed = 1)
+{
+srArr:=[]
+LV_Delete()
+MaxIndex := ArrayLic.MaxIndex()-1
+Loop % MaxIndex
+{
+LV_Add(,ArrayIDL[A_Index],ArrayLic[A_Index],ArrayCount[A_Index],ArrayBusy[A_Index],ArrayDatefrom[A_Index],ArrayDateto[A_Index])
+}
+FileAppend, %log_time%: [ButtonЛицензия] Load form lic   `n,%logs%
+LV_ModifyCol(1,60)
+LV_ModifyCol(2,319)
+LV_ModifyCol(3,"50 Center")
+LV_ModifyCol(4,"50 Center SortDesc")
+LV_ModifyCol(5,80)
+LV_ModifyCol(6,100)
+gui, About:Show
+ed := 0
+return
+}
+}
+Gui ListView, MLV
+return
+}
+countactividl()
+{
+connections=http://%site%:%port%/resto/service/monitoring/connections.jsp
+Try
+{
+whr.SetTimeouts(5000, 5000, 5000, 5000)
+whr.Open("GET",connections, false)
+whr.Send()
+textcon:= whr.ResponseText
+}
+Catch
+{
+MsgBox, 16,, % "Ошибка запроса к мониторингу`n`nwhat: " e.what "`nfile: " e.file
+. "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
+}
+indexSt:=0
+ArrayMON:=[]
+ArrayMON[1]:=[]
+ArrayMON[2]:=[]
+stringreplace,textcon,textcon,<td>`r`n,,all
+stringreplace,textcon,textcon,</td>`r`n,,all
+stringreplace,textcon,textcon,<tr>`r`n,,all
+stringreplace,textcon,textcon,</tr>`r`n,,all
+stringreplace,textcon,textcon,<td style="text-align: right">`r`n,,all
+stringreplace,textcon,textcon,`r,,all
+loop,parse,textcon,`n
+{
+SB_SetParts(150,150,700,300,40)
+SB_SetText("Запрос активных лицензий "A_index,4)
+if start= 1
+{
+indexSt:=indexSt+1
+stringreplace,LoopField,A_LoopField,%A_SPACE%,,all
+stringreplace,LoopField,LoopField,`r,,all
+if indexSt = 6
+{
+sov=0
+for index, element in ArrayMON[1]
+{
+s:=
+s:= ArrayMON[1][index]
+if Loopfield = %s%
+{
+i:=1
+i:=ArrayMON[2][index]
+i:=i+1
+ArrayMON[2].InsertAt(index,i)
+sov=1
+}
+}
+if sov=0
+{
+ArrayMON[1].Push(Loopfield)
+ArrayMON[2].Push(1)
+}
+}
+if (indexSt = 10 )
+{
+indexSt=1
+}
+}
+ifinstring,A_LoopField,activity</th>
+start:=1
+ifinstring,A_LoopField,</table>
+start:=0
+}
+return [ArrayMON]
+}
+sizeofheap()
+{
+connections=http://%site%:%port%/resto/service/maintance/memClean.jsp?action=Run+Full+Garbage+Collection
+Try
+{
+whr.SetTimeouts(15000, 15000, 15000, 15000)
+whr.Open("GET",connections, false)
+whr.Send()
+textmem:= whr.ResponseText
+stringreplace,textmem,textmem,<td>`r`n,,all
+stringreplace,textmem,textmem,</td>`r`n,,all
+stringreplace,textmem,textmem,<tr>`r`n,,all
+stringreplace,textmem,textmem,</tr>`r`n,,all
+stringreplace,textmem,textmem,<td style="text-align: right">`r`n,,all
+stringreplace,textmem,textmem,`r,,all
+stringreplace,textmem,textmem,`r`n,,all
+stringreplace,textmem,textmem,title=",,all
+stringreplace,textmem,textmem,<th class="StatusGood"`r`n,,all
+stringreplace,textmem,textmem,<th class="StatusFatal"`r`n,,all
+stringreplace,textmem,textmem,</th>`n,,all
+loop, parse, textmem,`n
+{
+if InStr(A_LoopField,"Maximum heap size")
+{
+textmem := A_LoopField
+Break
+}
+if InStr(A_LoopField,"Максимальный размер хипа")
+{
+textmem := A_LoopField
+Break
+}
+}
+txt1    := "Java HEAP Free: "
+txt2    := " из "
+currmem := SubStr(textmem, 154, 8)
+if NOT(currmem=)
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [sizeofheap] String of currmem = %currmem% `n,%logs%
+freemem := SubStr(textmem, 190, 8)
+StringReplace freemem, freemem,>,,
+StringReplace freemem, freemem,d,,
+if NOT(freemem=)
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [sizeofheap] String of freemem = %freemem% `n,%logs%
+mems    := txt1 freemem txt2 currmem
+}
+catch e
+{
+e:="Element " e.what " with message =  " e.message " in line = " e.line
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : WARN [sizeofheap] get Mem is FAIL for %MyEdit% cos.: %e%  `n,%logs%
+mems:= "Ошибка соединения, попробуем позже"
+return %mems%
+}
+return %mems%
+}
+percentofram()
+{
+try
+{
+connections=http://%site%:%port%/resto/service/monitoring/health.jsp
+whr.SetTimeouts(8000, 8000, 8000, 8000)
+whr.Open("GET",connections, false)
+whr.Send()
+textheal:= whr.ResponseText
+RAMU:=""
+FileAppend, %textheal%, C:\mem.txt
+stringreplace,textheal,textheal,<td>`r`n,,all
+stringreplace,textheal,textheal,</td>`r`n,,all
+stringreplace,textheal,textheal,<tr>`r`n,,all
+stringreplace,textheal,textheal,</tr>`r`n,,all
+stringreplace,textheal,textheal,<td style="text-align: right">`r`n,,all
+stringreplace,textheal,textheal,`r,,all
+stringreplace,textheal,textheal,`r`n,,all
+stringreplace,textheal,textheal,title=",,all
+stringreplace,textheal,textheal,<th class="StatusGood"`r`n,,all
+stringreplace,textheal,textheal,<th class="StatusFatal"`r`n,,all
+stringreplace,textheal,textheal,</th>`n,,all
+loop, parse, textheal,`n
+{
+if InStr(A_LoopField,"Free RAM:")
+{
+RAMU:=A_LoopField
+break
+}
+if InStr(A_LoopField,"Свободно оперативной памяти:")
+{
+RAMU:=A_LoopField
+break
+}
+}
+countram:= RegExMatch(RAMU,"\W\d\d\W")
+countram++
+RAMU:= SubStr(RAMU,countram,3)
+}
+catch e
+{
+e:="Element " e.what " with message =  " e.message " in line = " e.line
+RAMU:="-"
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [percentofram] Connection error cos.: %e% `n,%logs%
+SetTimer,statusbar,5000
+RAMU:="Ошибка соединения, попробуем позже"
+return %RAMU%
+}
+return %RAMU%
+}
+stateofhdd()
+{
+try
+{
+connections=http://%site%:%port%/resto/service/monitoring/health.jsp
+whr.SetTimeouts(8000, 8000, 8000, 8000)
+whr.Open("GET",connections, false)
+whr.Send()
+textheal:= whr.ResponseText
+ArrayHDD:=[]
+HDD:=""
+stringreplace,textheal,textheal,<td>`r`n,,all
+stringreplace,textheal,textheal,</td>`r`n,,all
+stringreplace,textheal,textheal,<tr>`r`n,,all
+stringreplace,textheal,textheal,</tr>`r`n,,all
+stringreplace,textheal,textheal,<td style="text-align: right">`r`n,,all
+stringreplace,textheal,textheal,`r,,all
+stringreplace,textheal,textheal,`r`n,,all
+stringreplace,textheal,textheal,title=",,all
+stringreplace,textheal,textheal,<th class="StatusGood"`r`n,,all
+stringreplace,textheal,textheal,<th class="StatusFatal"`r`n,,all
+stringreplace,textheal,textheal,</th>`n,,all
+loop, parse, textheal,`n
+{
+if InStr(A_LoopField,"Disk subsystem")
+{
+co:=A_Index
+loop, parse, textheal,`n
+{
+if InStr(A_LoopField,">HDD")
+break
+if A_index >= %co%
+{
+ArrayHDD.Push(A_LoopField)
+HDD=%HDD%%A_LoopField%`n
+}
+}
+}
+if InStr(A_LoopField,"Дисковая подсистема")
+{
+co:=A_Index
+loop, parse, textheal,`n
+{
+if InStr(A_LoopField,">HDD")
+break
+if A_index >= %co%
+{
+ArrayHDD.Push(A_LoopField)
+HDD=%HDD%%A_LoopField%`n
+}
+}
+}
+}
+stringreplace,HDD,HDD,Disk subsystem,,All
+stringreplace,HDD,HDD,HDD,,All
+}
+catch e
+{
+e:="Element " e.what " with message =  " e.message " in line = " e.line
+HDD:="-"
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : WARN [stateofhdd] Connection error cos: %e% `n,%logs%
+SetTimer,statusbar,5000
+HDD="Ошибка соединения, попробуем позже."
+return %HDD%
+}
+return %HDD%
+}
+floadforms()
+{
+IniRead, OutputVar,%A_AppData%%configfile%, Base, WorkingDir
+StringCaseSense, Locale
+Gui, ListView, MyListView
+LV_Delete()
+Loop Files, %OutputVar%%pathtoback%, R
+{
+FileGetVersion, OutputVar , %A_LoopFileFullPath%
+IfInString, A_LoopFileFullPath, RMS
+LV_Add("","RMS", OutputVar, A_LoopFileFullPath)
+IfInString, A_LoopFileFullPath, CHAIN
+LV_Add("","CHAIN", OutputVar, A_LoopFileFullPath)
+}
+LV_ModifyCol()
+LV_ModifyCol(1,"Sort")
+Gui, ListView, MyListView1
+IniRead, OutputVar,%A_AppData%%configfile%, Base, pathtordp
+pathtordp:=OutputVar
+LV_Delete()
+Loop Files, %pathtordp%*.rdp
+{
+LV_Add("",A_LoopFilename)
+}
+LV_ModifyCol()
+GuiControl, +Redraw, MyListView1
+Gui ListView, MyListView2
+LV_Delete()
+loadcsv()
+LV_ModifyCol(1,188)
+LV_ModifyCol(2,165)
+LV_ModifyCol(3,112)
+LV_ModifyCol(6,"Sort Uni")
+CheckScriptUpdate()
+GuiControl, +Redraw, MyListView2
+yes:=1
+return yes
+}
+statusbarWin()
+{
+stopformon := 0
+c:=0
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [statusbarWin] Started `n,%logs%
+gui,ListView,MyListView2
+currowid := LV_GetNext(0, "F")
+LV_GetText(RowText, currowid)
+if currowid=Clients
+{
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : WARN [statusbarWin] break cos. selected = 0  `n,%logs%
+return
+}
+Else
+{
+LV_GetText(name,currowid,2)
+getconnections(RowText)
+if (testconnect(site,port) = 1)
+{
+Gui Mo:Font, s20 cTeal
+Gui Mo:Add, Text, x0 y0 w437 h55 +0x200 +E0x200 +0x400000 +Center, %name%
+Gui Mo:Font
+Gui Mo:Font, s15, Impact
+Gui Mo:Add, Text, x0 y60 w437 h23 +0x200 +Center vtPerM, MEM
+Gui Mo:Font
+Gui,Mo:Margin, 0, 0
+Gui Mo:Add, Text, x15 y86 w410 h120 hwndhMEM
+Gui Mo:Font, s15, Impact
+Gui Mo:Add, Text, x0 y216 w437 h15 +0x200 +Center, JAVA
+Gui Mo:Font
+Gui Mo:Font, s13
+Gui Mo:Add, Text, x15 w400 h23 vtJAV,
+Gui Mo:Font, s15, Impact
+Gui Mo:Add, Text, x0 y+20 w437 h23 +0x200 +Center, HDD
+Gui Mo:Font
+Gui Mo:Font, s13
+Gui Mo:Add, Text, x15 w400 h120 vtHDD,
+Gui Mo:Add, StatusBar,,
+Gui Mo:Default
+SB_SetParts(200,100)
+pGraph := XGraph(hMEM, 0x000044, 10, "5,5,5,5", 0x8080FF )
+Gui, Mo:Show,w437, Monitoring
+MEMU := percentofram()
+Gui Mo:Default
+SB_SetText("Запрос ОЗУ",1)
+Gui 1:Default
+GuiControl,Mo:,tPerM,%MEMU%
+StringReplace MEMUg, MEMU,`%,,
+XGraph_Plot( pGraph,100 - MEMUg,MEMUg )
+Gui Mo:Default
+SB_SetText("",1)
+SB_SetText("Запрос HDD",1)
+Gui 1:Default
+HDDU := stateofhdd()
+GuiControl,Mo:,tHDD,%HDDU%
+Gui Mo:Default
+SB_SetText("",1)
+SB_SetText("Запрос JAVA",1)
+Gui 1:Default
+JAVU := sizeofheap()
+GuiControl,Mo:,tJAV,%JAVU%
+Gui Mo:Default
+SB_SetText("",1)
+while NOT(stopformon = 1)
+{
+sleep 5000
+c:=1+c
+Gui Mo:Default
+SB_SetText("Запрос ОЗУ",1)
+Gui 1:Default
+MEMU := percentofram()
+GuiControl,Mo:,tPerM,%MEMU%
+StringReplace MEMUg, MEMU,`%,,
+XGraph_Plot( pGraph,100 - MEMUg,MEMUg )
+Gui Mo:Default
+SB_SetText("",1)
+Gui 1:Default
+if c>30
+{
+Gui Mo:Default
+SB_SetText("Запрос HDD",1)
+Gui 1:Default
+HDDU := stateofhdd()
+GuiControl,Mo:,tHDD,%HDDU%
+Gui Mo:Default
+SB_SetText("Запрос JAVA",1)
+Gui 1:Default
+JAVU := sizeofheap()
+GuiControl,Mo:,tJAV,%JAVU%
+Gui Mo:Default
+SB_SetText("",1)
+Gui 1:Default
+c:=0
+}
+}
+}
+Else
+{
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : WARN [statusbarWin] break cos. NOT connection  `n,%logs%
+Msgbox Нет связи
+return
+}
+}
+}
+statusbar()
+{
+if monitorram=1
+{
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [statusbar] Started `n,%logs%
+SetTimer,statusbar,60000
+gui,ListView,MyListView2
+currowid := LV_GetNext(0, "F")
+LV_GetText(RowText, currowid)
+if currowid=Clients
+{
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : WARN [statusbar] break cos selected = 0  `n,%logs%
+return
+}
+Else
+{
+LV_GetText(name,currowid,2)
+getconnections(RowText)
+if (testconnect(site,port) = 1)
+{
+SB_SetParts(150,150,700,300,40)
+SB_SetText(name,1)
+RAMU:=Percentofram()
+SB_SetText("Свободной памяти:"RAMU,2)
+}
+Else
+{
+SB_SetParts(150,150,700,300,40)
+SB_SetText("",1)
+SB_SetText("",2)
+}
+}
+}
+}
+CheckScriptUpdateOFFUser()
+{
+if monitorcon=1
+{
+if  A_TimeIdle>= 60000
+{
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [CheckScriptUpdateOFFUser] User is idle on 1 min `n,%logs%
+Gui, ListView, MyListView2
+SB_SetText("Мониторинг в процессе",4)
+GuiControl, -Redraw, MyListView2
+loop	% LV_GetCount()
+{
+LV_GetText(RetrivText,A_Index,1)
+getconnections(RetrivText)
+status := getserverMonInfo()
+if status = 1
+{
+text=1`n
+FileAppend,%text%,%A_Appdata%%temps%
+}
+else
+{
+text=0`n
+FileAppend,%text%,%A_Appdata%%temps%
+}
+}
+FileRead, Temp, %A_Appdata%%temps%
+Loop, Parse, Temp,`n
+{
+LV_Modify(A_Index,,,,,,A_LoopField)
+}
+LV_ModifyCol()
+LV_ModifyCol(1,187)
+LV_ModifyCol(2,165)
+LV_ModifyCol(3,112)
+LV_ModifyCol(6,"Sort Uni")
+GuiControl, +Redraw, MyListView2
+countcheck := 1
+FileDelete,%A_Appdata%%temps%
+SB_SetText("",4)
+SetTimer CheckScriptUpdateOFFUser, 20000
+return getcon
+}
+}
+}
+CheckScriptUpdate()
+{
+FileDelete %A_Appdata%%temps%
+if monitorcon=1
+{
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [CheckScriptUpdate] Started `n,%logs%
+Gui, ListView, MyListView2
+SB_SetParts(150,150,700,300,40)
+SB_SetText("Мониторинг в процессе",4)
+GuiControl, -Redraw, MyListView2
+loop	% LV_GetCount()
+{
+LV_GetText(RetrivTextN,A_Index,2)
+LV_GetText(x,A_Index,6)
+if InStr(x,"X")
+continue
+SB_SetText("Мониторинг в процессе: " RetrivTextN,4)
+LV_GetText(RetrivText,A_Index,1)
+getconnections(RetrivText)
+status := getserverMonInfo()
+if status = 1
+{
+text=1`n
+FileAppend,%text%,%A_Appdata%%temps%
+}
+else
+{
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : WARN [CheckScriptUpdate] %RetrivTextN% is anavailable`n,%logs%
+text=0`n
+FileAppend,%text%,%A_Appdata%%temps%
+}
+}
+FileRead, TempR, %A_Appdata%%temps%
+Loop, Parse, TempR, `n
+{
+LV_Modify(A_Index,,,,,,A_LoopField)
+}
+LV_ModifyCol()
+LV_ModifyCol(1,187)
+LV_ModifyCol(2,165)
+LV_ModifyCol(3,112)
+LV_ModifyCol(6,"Sort Uni")
+GuiControl, +Redraw, MyListView2
+SB_SetText("",4)
+countcheck := 1
+SB_SetText("",4)
+return getcon
+}
+}
+testconnect(site,port)
+{
+sucsesslogin:=0
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [testconnect] Started connect `n,%logs%
+loop % arrayuser.Length()
+{
+Username:=arrayuser[A_Index]
+Password:=arraypass[A_Index]
+login=http://%site%:%port%/resto/j_spring_security_check?j_username=%Username%&j_password=%Password%
+Try
+{
+whr.SetTimeouts(5000, 5000, 5000, 5000)
+whr.Open("POST",login, false)
+whr.Send()
+text:= whr.ResponseText
+}
+catch
+{
+sucsesslogin:=2
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : WARN [testconnect] connect is not sucsess  where %site%:%port% `n,%logs% `n,%logs%
+break
+}
+ifinstring , text , /resto/service
+{
+sucsesslogin:=1
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [testconnect] connect is sucsess for %site%:%port% `n,%logs%
+break
+}
+}
+return sucsesslogin
+}
+loadpass()
+{
+envsetforpass()
+workinpass:=1
+LV_Delete()
+Crypt.Encrypt.FileDecrypt(fpcr,fpNotcr,passtocr,3,1)
+filedelete %fpcr%
+FileRead, Temp, %fpNotcr%
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [loadpass] load file %A_AppData%%pathtopass% `n,%logs%
+Loop, Parse, Temp, `n
+{
+StringSplit,Temp, A_LoopField,;
+LV_Add("",Temp1,Temp2)
+}
+Crow:=LV_GetCount()
+LV_Delete(Crow)
+LV_ModifyCol(,AutoHdr)
+Crypt.Encrypt.FileEncrypt(fpNotcr,fpcr,passtocr,3,1)
+filedelete %fpNotcr%
+workinpass:=0
+}
+write1clients(MyEdit)
+{
+Gui, Submit, NoHide
+Gui, ListView, MyListView2
+GuiControlGet, MyEdit
+found := 0
+loop % LV_GetCount()
+{
+LV_GetText(f, A_index ,1)
+If 	f = %MyEdit%
+{
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [ButtonПодключиться-write1clients]  For %MyEdit% clients already exist `n,%logs%
+LV_GetText(ov, A_index ,4)
+getserverinfo()
+if NOT(ov=sver) OR (ov="")
+{
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [ButtonПодключиться-write1clients] old version is %ov% new version is %svers%  `n,%logs%
+LV_Modify(A_index,,,,,sver)
+saveclients()
+}
+found:=1
+break
+}
+}
+if found=0
+{
+getserverinfo()
+si := getconnections(MyEdit)
+serport := si[1]
+LV_Add(,serport,sern,,sver,1)
+LV_Modify(3, 125)
+saveclients()
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [ButtonПодключиться-write1clients] %MyEdit% is added `n,%logs%
+iterationREV()
+}
+Gui, ListView, MyListView2
+}
+saveclients()
+{
+if statusLVCL = 0
+{
+FileSetAttrib, -R, %A_AppData%%pathtoclients%
+FileDelete, %A_AppData%%pathtoclients%
+if ErrorLevel
+{
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : WARN [saveclients] DELETE file %A_AppData%%pathtoclients% is FAILED`n,%logs%
+}
+FileAppend, , %A_AppData%%pathtoclients%
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [saveclients] save file %A_AppData%%pathtoclients% is STARTED`n,%logs%
+tempfileserv:=
+tempfilename:=
+tempfiledopname:=
+tempfilevers:=
+tempfilex:=
+Gui, ListView, MyListView2
+SB_SetParts(150,150,700,300,40)
+SB_SetText("Сохранение в процессе",4)
+loop % LV_GetCount()
+{
+SB_SetText("Сохранение в процессе "A_Index,4)
+LV_GetText(tempfileserv,A_Index,1)
+StringReplace tempfileserv, tempfileserv,`r,,
+LV_GetText(tempfilename,A_Index,2)
+StringReplace tempfilename, tempfilename,`r,,
+LV_GetText(tempfiledopname,A_Index,3)
+StringReplace tempfiledopname, tempfiledopname,`r,,
+LV_GetText(tempfilevers,A_Index,4)
+StringReplace tempfilevers, tempfilevers,`r,,
+LV_GetText(tempfilex,A_Index,6)
+StringReplace tempfilex, tempfilex,`r,,
+FileAppend, %tempfileserv%;%tempfilename%;%tempfiledopname%;%tempfilevers%;%tempfilex%`n, %A_AppData%%pathtoclients%
+}
+if XDel=0
+{
+Loop % XName.MaxIndex()
+{
+n := XName[A_Index]
+l := XLic[A_Index]
+dn:= XDopN[A_Index]
+v := XVer[A_Index]
+x := Xx[A_Index]
+FileAppend, %n%;%l%;%dn%;%v%;%x%`n, %A_AppData%%pathtoclients%
+}
+}
+if FileExist (A_AppData pathtoclients)
+{
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [saveclients] save file %A_AppData%%pathtoclients% is goood `n,%logs%
+}
+Else
+{
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : WARN [saveclients] save file %A_AppData%%pathtoclients% is missing `n,%logs%
+}
+SB_SetText("",4)
+Gui, ListView, MyListView2
+}
+else
+{
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : TIMER [saveclients] SET TIMER FOR 5 sec`n,%logs%
+SetTimer, saveclients,5000
+}
+}
+verification(Server,parametr)
+{
+MyEdit:=Server
+if parametr = 1
+{
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [verification] is STARTED for ONE Client which is %MyEdit% `n,%logs%
+getconnections(MyEdit)
+serverinfo := getserverinfo()
+}
+if parametr = 2
+{
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [verification] is STARTED for ALL Clients `n,%logs%
+Gui, ListView, MyListView2
+GuiControl, -Redraw, MyListView2
+MyEdit=
+SB_SetParts(150,150,700,300,40)
+SB_SetText("Обновление версии",4)
+silenterrcon:=1
+fasttiming:=1
+Loop % LV_GetCount()
+{
+LV_GetText(MyEdit,A_Index,1)
+if (MyEdit="") OR (MyEdit=Null) OR (MyEdit=)
+Continue
+getconnections(MyEdit)
+serverinfo := getserverinfo()
+if (serverinfo[1] = "error" )
+Continue
+SB_SetText("Верификация: "sern ,4)
+StringReplace sern, sern,`r,,
+StringReplace sern, sern,`n,,
+StringReplace sern, sern,`;,,
+StringReplace sver, sver,`r,,
+StringReplace sver, sver,`n,,
+StringReplace sver, sver,`;,,
+LV_Modify(A_Index,,,sern,,sver,A_Space)
+}
+LV_ModifyCol()
+LV_ModifyCol(3,112)
+GuiControl, +Redraw, MyListView2
+silenterrcon:=0
+fasttiming:=0
+SB_SetText("",4)
+}
+}
+savepass()
+{
+workinpass:=1
+FileSetAttrib, -R, %fpcr%
+FileDelete, %fpcr%
+FileAppend, , %fpNotcr%
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [savepass] save file %A_AppData%%pathtopass% is STARTED `n,%logs%
+Gui, ListView, MyListView5
+loop % LV_GetCount()
+{
+LV_GetText(tempfileuser,A_Index,1)
+FileAppend, %tempfileuser%;, %A_AppData%%pathtopass%
+LV_GetText(tempfilepass,A_Index,2)
+FileAppend, %tempfilepass%`n, %A_AppData%%pathtopass%
+passcount:=0
+}
+if FileExist(A_AppData pathtopass)
+{
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [savepass] save file %A_AppData%%pathtopass% is GOOOOD `n,%logs%
+}
+Else
+{
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : WARN [savepass] save file %A_AppData%%pathtopass% is ERROR `n,%logs%
+}
+if WorkonSQL=1
+{
+FileRead out,%fpNotcr%
+Env_UserDel("pass_for_ahk")
+Env_UserNew("pass_for_ahk",out)
+}
+Loop, Read, %fpNotcr%
+{
+artemp:= StrSplit(A_LoopReadLine,";")
+arrayuser.Push(artemp[1])
+arraypass.Push(artemp[2])
+}
+Crypt.Encrypt.FileEncrypt(fpNotcr,fpcr,passtocr,3,1)
+filedelete %fpNotcr%
+workinpass:=0
+Gui, ListView, MyListView5
+}
+connect()
+{
+Gui Submit, NoHide
+Gui ListView, MyListView2
+loadcsv()
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [connect] is Started `n,%logs%
+SB_SetParts(150,150,700,300,40)
+SB_SetText("Подключение",3)
+serverinfo := getserverinfo()
+if (serverinfo[1] = "error" )
+{
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : WARN [connect] Connect is error `n,%logs%
+return
+}
+If (login(site,port) = 1)
+{
+SB_SetText("Пароль найден",3)
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [connect] Connect is ok for %site%:%port% `n,%logs%
+Gui ListView, MyListView
+changeappdata(serverinfo[3])
+SB_SetText("AppData изменена",3)
+found := 0
+Loop % LV_GetCount()
+{
+LV_GetText(Retrieved3, A_Index, 3)
+LV_GetText(Retrieved2, A_Index, 2)
+LV_GetText(Retrieved1, A_Index, 1)
+if (serverinfo[2] = Retrieved2 and Retrieved1 ="CHAIN" and serverinfo[3]="chain")
+{
+run %Retrieved3%
+found = 1
+SB_SetText("Чейн",3)
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [connect] type is Chain for %site%:%port% `n,%logs%
+break
+}
+if (serverinfo[2] = Retrieved2 and Retrieved1 ="RMS" and serverinfo[3]="default")
+{
+run %Retrieved3%
+found = 1
+SB_SetText("РМС",3)
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [connect] type is RMS for %site%:%port% `n,%logs%
+break
+}
+}
+If found = 0
+{
+SB_SetText("",3)
+info:=serverinfo[2]"   "serverinfo[3]
+msgbox НЕТ НУЖНОГО ОФИСА, ДОБАВЬ!`n %info%
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : WARN [connect] backs is NOT found: %info%`n,%logs%
+return
+}
+cleanlic(serverinfo[3])
+Gui ListView, MyListView2
+write1clients(MyEdit)
+classfound:=0
+DetectHiddenWindows, on
+SB_SetText("Определение класса окна",3)
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [connect] For %MyEdit% start to enter `n,%logs%
+WinWait Вход в систему
+if ErrorLevel
+{
+SB_SetText("",3)
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : WARN [connect] For %MyEdit% enter win "vhod v system is NOT found"  `n,%logs%
+msgbox Не найдено активное окно.
+return
+}
+Else
+{
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [connect] For %MyEdit% enter win "vhod v system found"  `n,%logs%
+WinGetClass, classtitle,Вход в систему
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [connect] FOUND classtitle for Vhod v system is - %classtitle%  `n,%logs%
+Winget out,ControlList, Вход в систему
+sleep 1000
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [connect] SEARCH CLASSNN  `n,%logs%
+Loop, Parse,out,`n
+{
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [connect] %A_LoopField%  `n,%logs%
+IfInString, A_LoopField,.EDIT.
+{
+IfInString,A_LoopField,ad11
+{
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [connect] %A_LoopField% exist in string EDIT and ad11  `n,%logs%
+class := A_LoopField
+classfound:=1
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [connect] FINALLY found is -  %class%  `n,%logs%
+break
+}
+else
+{
+classfound:=0
+}
+}
+Else
+{
+classfound:=0
+}
+}
+WinActivate, ahk_class %classtitle%
+if ErrorLevel
+{
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : WARN [connect] %classtitle% is NOT ATCIVE `n,%logs%
+}
+sleep 500
+WinWaitActive,ahk_class %classtitle%
+if ErrorLevel = 0
+{
+if  classfound=1
+{
+SB_SetText("Класс определен",3)
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [connect] (CLASSIC) Post Password for %class% where title is %classtitle%`n,%logs%
+BlockInput On
+ControlSendRaw,%class%,%Password%,ahk_class %classtitle%
+sleep 400
+ControlSend,%class%,{enter},ahk_class %classtitle%
+BlockInput Off
+}
+Else
+{
+SB_SetText("Класс НЕ определен",3)
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [connect] (ONNAME) Post Password for name where title is %classtitle%`n,%logs%
+WinActivate, ahk_class %classtitle%
+BlockInput On
+sendinput {Raw}%Password%
+sleep 1000
+sendinput {enter}
+BlockInput Off
+}
+}
+else
+{
+SB_SetText("",3)
+msgbox Не дождались активности окна
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : WARN [connect] %classtitle% is do not WAITACTIVE `n,%logs%
+}
+SB_SetText("",3)
+WinWait %sern%,,25
+if ErrorLevel = 0
+{
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [connect] CONNECT IS SACCSES for %sern%`n,%logs%
+}
+Else
+{
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : WARN [connect] CONNECT IS FAIL for %sern%`n,%logs%
+}
+DetectHiddenWindows, off
+}
+}
+SB_SetText("",4)
+}
+loadcsv()
+{
+GuiControl, -Redraw, MyListView2
+statusLVCL:=1
+LV_Delete()
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [loadcsv] Load file %A_AppData%%pathtoclients% is started`n,%logs%
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [loadcsv] STATUS SAVE = %statusLVCL%`n,%logs%
+FileRead, TempCL, %A_AppData%%pathtoclients%
+SB_SetParts(150,150,700,300,40)
+SB_SetText("загрузка списка",4)
+d:=0
+co:=0
+broken:=0
+checkstr:=[]
+doublecheck:=[]
+doublever:=[]
+XName:=[]
+XLic :=[]
+XDopN:=[]
+XVer :=[]
+Xx   :=[]
+yayest:=0
+Loop, Parse, TempCL, `n
+{
+if (A_LoopField = ) OR (A_LoopField = A_Space)
+Continue
+if InStr(TempCL1, "Clients")
+Continue
+SB_SetText("Загрузка списка " A_Index,4)
+if A_index < 3
+{
+StringReplace,t, A_LoopField,`;,`;, UseErrorLevel
+co := ErrorLevel
+if NOT(co=4)
+broken:=1
+}
+StringSplit,TempCL, A_LoopField,;
+if TempCL5 =
+TempCL5:= A_Space A_Space
+if TempCL5 = %A_Space%
+TempCL5:= A_Space A_Space
+if InStr(TempCL5, "X")
+yayest:=1
+if XDel = 1
+{
+LV_Add("",TempCL1,TempCL2,TempCL3,TempCL4,,TempCL5)
+}
+Else
+{
+if InStr(TempCL5, "X")
+{
+ch:=
+for index, element in XName
+{
+if InStr(element,TempCL1)
+ch:=1
+if InStr(element,"")
+ch:=2
+}
+if ch=1
+Continue
+if ch=2
+Continue
+XName.Push(TempCL1)
+XLic.Push(TempCL2)
+XDopN.Push(TempCL3)
+XVer.Push(TempCL4)
+Xx.Push(TempCL5)
+continue
+}
+else
+{
+LV_Add("",TempCL1,TempCL2,TempCL3,TempCL4,,TempCL5)
+}
+}
+}
+if (XDel=1) AND (yayest=1)
+{
+Crow:=LV_GetCount()
+LV_Delete(Crow)
+}
+if (XDel=1) AND (yayest=0)
+{
+Crow:=LV_GetCount()
+LV_Delete(Crow)
+}
+if (XDel=0) AND (yayest=0)
+{
+Crow:=LV_GetCount()
+LV_Delete(Crow)
+}
+if FileExist(A_AppData pathtoclients)
+{
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [loadcsv] Load file %pathtoclients% to form is good`n,%logs%
+}
+else
+{
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : WARN [loadcsv] File %pathtoclients% to form is MISSING`n,%logs%
+}
+SB_SetText("",4)
+statusLVCL:=0
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% :  [loadcsv] STATUS SAVE = %statusLVCL%`n,%logs%
+n:=""
+Loop % LV_GetCount()
+{
+LV_GetText(n,A_Index,1)
+d:=0
+dm:=0
+с:=A_Index
+for index,element in doublecheck
+{
+if InStr(n,element)
+{
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : CHECK_3 [loadcsv] В строке %n% *** есть *** %element%  `n,%logs%
+LV_Delete(с)
+d:=1
+}
+}
+if d=0
+doublecheck.push(n)
+if d=1
+dm:=1
+}
+if dm=1
+{
+saveclients()
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : CHECK_4 [loadcsv] Double clients deleted`n,%logs%
+}
+Loop % LV_GetCount()
+{
+LV_GetText(n,A_Index,4)
+doublever.push(n)
+}
+n:=""
+it:=0
+LC:= LV_GetCount()
+LV_GetText(n,LC,4)
+if LC>1
+for index,element in doublever
+{
+if InStr(n,element)
+{
+it:=it+1
+}
+}
+if it=%LC% AND LC>1
+{
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : WARN CHECK_4 [loadcsv] Double Vers (maybe errors in SQLsync) `n,%logs%
+MsgBox Обнаружена ошибка c дублем версий. Необходимо отрубить связь с SQL и нажать "V" после чего включить SQL обратно.
+}
+countofcli:=LV_GetCount()
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [loadcsv] Count of clients = %countofcli%`n,%logs%
+LV_ModifyCol()
+LV_ModifyCol(1,187)
+LV_ModifyCol(2,165)
+LV_ModifyCol(3,112)
+LV_ModifyCol(6,"Sort Uni")
+GuiControl, +Redraw, MyListView2
+SB_SetText("",4)
+SB_SetParts(150,150,700,300,40)
+SB_SetText("Клиентов "countofcli,4)
+SB_SetText(progvers,5)
+}
+login(site,port)
+{
+sucsesslogin:=0
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [login] is Started`n,%logs%
+loop % arrayuser.Length()
+{
+Username:=arrayuser[A_Index]
+Password:=arraypass[A_Index]
+login=http://%site%:%port%/resto/j_spring_security_check?j_username=%Username%&j_password=%Password%
+Try
+{
+whr.Open("POST",login, false)
+whr.Send()
+text:= whr.ResponseText
+}
+catch
+{
+msgbox Ошибка - нет связи
+sucsesslogin:=2
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : WARN [login] SERVER %site%:%port% is NOT Exist `n,%logs%
+break
+}
+ifinstring , text , /resto/service
+{
+sucsesslogin:=1
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [login] Connect is sucsess`n,%logs%
+sclogin:=login
+break
+}
+}
+If (sucsesslogin = 0 )
+{
+StringGetPos,pos, text,Причина
+StringTrimLeft,text,text,pos
+StringGetPos,pos, text,</t
+StringLeft,text,text,pos
+msgbox Ошибка - %text%
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : WARN [login] Connect is ERROR cos.: %text% `n,%logs%
+}
+return sucsesslogin
+}
+getconnections(MyEdit)
+{
+Gui Submit, NoHide
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [getconnections] Started change field connect for %MyEdit% `n,%logs%
+IfInString MyEdit,%A_Space%
+{
+stringreplace MyEdit,MyEdit,%A_Space%,,ALL
+}
+IfInString MyEdit,A_Space
+{
+stringreplace MyEdit,MyEdit,%A_Space%,,ALL
+}
+IfInString MyEdit,http://
+{
+stringreplace MyEdit,MyEdit,http://,
+}
+IfInString MyEdit,/resto
+{
+stringreplace MyEdit,MyEdit,/resto,
+}
+IfInString MyEdit,/
+{
+stringreplace MyEdit,MyEdit,/,
+}
+StringGetPos,pos,MyEdit,:
+StringLeft,site,MyEdit,pos
+StringtrimLeft,port,MyEdit,pos+1
+sqlgroovy=http://%site%:%port%/resto/service/maintance/groovy.jsp?
+serport := MyEdit
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [getconnections] FINALLY is %MyEdit% `n,%logs%
+return [serport]
+}
+getserverMonInfo()
+{
+Try
+{
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [getserverMonInfo] Try to MON for %site%:%port%`n,%logs%
+vers=http://%site%:%port%/resto/getServerMonitoringInfo.jsp?
+whr.SetTimeouts(5000, 5000, 5000, 5000)
+whr.Open("GET",vers,false)
+whr.Send()
+Status := whr.Status
+status := 1
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [getserverMonInfo] Saccses for %site%:%port%`n,%logs%
+}
+catch e
+{
+e:="Element " e.what " with message =  " e.message " in line = " e.line
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : WARN [getserverMonInfo] ERROR connect for %site%:%port% cos.: %e%`n,%logs%
+status := 0
+return status
+}
+return status
+}
+getserverinfo()
+{
+Try
+{
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [getserverinfo] Try to get INFO for %site%:%port%`n,%logs%
+vers=http://%site%:%port%/resto/get_server_info.jsp?
+if fasttiming=0
+whr.SetTimeouts(5000, 5000, 5000, 5000)
+else
+whr.SetTimeouts(2000, 2000, 2000, 2000)
+whr.Open("GET",vers,false)
+whr.Send()
+textvers:= whr.ResponseText
+text=
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [getserverinfo] Saccses for %site%:%port%`n,%logs%
+loop,parse,textvers,>
+{
+ifinstring,A_LoopField,</serverName
+{
+stringreplace,LoopField,A_LoopField,</serverName,,all
+sern=%text%%LoopField%
+text=%text%Имя сервера: %LoopField%`n
+}
+ifinstring,A_LoopField,</edition
+{
+stringreplace,LoopField,A_LoopField,</edition,,all
+text=%text%Тип сервера: %LoopField%`n
+edition:=LoopField
+}
+ifinstring,A_LoopField,</serverState
+{
+stringreplace,LoopField,A_LoopField,</serverState,,all
+text=%text%Статус сервера: %LoopField%`n
+}
+ifinstring,A_LoopField,</version
+{
+stringreplace,LoopField,A_LoopField,</version,,all
+sver=%LoopField%
+text=%text%Версия: %LoopField%`n
+version:=LoopField
+}
+}
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [getserverinfo] INFO for %site%:%port% is %text% `n,%logs%
+}
+catch e
+{
+e:="Element " e.what " with message =  " e.message " in line = " e.line
+if silenterrcon = 0
+{
+SB_SetText("",3)
+msgbox Ошибка - нет связи
+}
+text=error
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : WARN [getserverinfo] ERROR connect for %site%:%port% cos.: %e%`n,%logs%
+}
+return [text,version,edition]
+}
+chcleanlic(id)
+{
+if (id != "")
+{
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [chcleanlic] STARTED `n,%logs%
+sqlchek:="script=import+resto.licensing.LicenseService%3B%0D%0Aimport+resto.licensing.RestrictionId%3B%0D%0ALicenseService.getRestrictionState%28"
+sqlchek2:=", RestrictionId.MAX_CONNECTIONS%29%3B%0D%0A&action=start"
+sqlverclean:="script=import+resto.licensing.LicenseService%3B%0ALicenseService.releaseModuleConnections%28"
+sqlverclean2:="%29%3B%0D%0A&action=start"
+}
+Else
+{
+msgbox Field id пустое
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [chcleanlic] Field id is empty `n,%logs%
+return
+}
+lic=%sqlgroovy%%sqlchek%%ID%%sqlchek2%
+clean=%sqlgroovy%%sqlverclean%%ID%%sqlverclean2%
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [chcleanlic] Delete lic for ID=%ID% is STARTED `n,%logs%
+Try
+{
+whr.SetTimeouts(5000, 5000, 5000, 5000)
+whr.Open("GET",lic, false)
+whr.Send()
+textlic:= whr.ResponseText
+}
+catch e
+{
+MsgBox, 16,, % "Не удалось удалить. Timeout!`n`nwhat: " e.what "`nfile: " e.file
+. "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
+e:="Element " e.what " with message =  " e.message " in line = " e.line
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : WARN [chcleanlic] Delete lic for ID=%ID% is Error cos,: %e% `n,%logs%
+}
+Loop, parse,textlic,`n,
+{
+ifinstring,A_LoopField,</pre><pre>Bindings
+{
+StringLeft,nomberlic,A_LoopField,1
+stringreplace,nomberlic,nomberlic,%A_Tab%,,all
+stringreplace,nomberlic,nomberlic,%A_SPACE%,,all
+stringreplace,nomberlic,nomberlic,`n,,all
+break
+}
+}
+if (nomberlic >= 1)
+{
+Try
+{
+whr.SetTimeouts(5000, 5000, 5000, 5000)
+whr.Open("GET",clean, false)
+whr.Send()
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [chcleanlic] Delete lic for ID=%ID% is Saccses `n,%logs%
+}
+catch e
+{
+MsgBox, 16,, % "Не удалось удалить. Нет связи!`n`nwhat: " e.what "`nfile: " e.file
+. "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
+e:="Element " e.what " with message =  " e.message " in line = " e.line
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : WARN [chcleanlic] Delete lic for ID=%ID% is Error cos,: %e% `n,%logs%
+}
+}
+}
+cleanlic(edition)
+{
+if (edition = "default")
+{
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [cleanlic] STARTED for rms `n,%logs%
+sqlchek:="script=import+resto.licensing.LicenseService%3B%0D%0Aimport+resto.licensing.RestrictionId%3B%0D%0ALicenseService.getRestrictionState%28200, RestrictionId.MAX_CONNECTIONS%29%3B%0D%0A&action=start"
+sqlverclean:="script=import+resto.licensing.LicenseService%3B%0D%0ALicenseService.releaseModuleConnections%28200%29%3B%0D%0A&action=start"
+}
+if (edition = "chain")
+{
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [cleanlic] STARTED for chain `n,%logs%
+sqlchek:="script=import+resto.licensing.LicenseService%3B%0D%0Aimport+resto.licensing.RestrictionId%3B%0D%0ALicenseService.getRestrictionState%289001, RestrictionId.MAX_CONNECTIONS%29%3B%0D%0A&action=start"
+sqlverclean:="script=import+resto.licensing.LicenseService%3B%0D%0ALicenseService.releaseModuleConnections%289001%29%3B%0D%0A&action=start"
+}
+try
+{
+lic=%sqlgroovy%%sqlchek%
+clean=%sqlgroovy%%sqlverclean%
+whr.Open("GET",lic, false)
+whr.Send()
+textlic:= whr.ResponseText
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [cleanlic] sucsess `n,%logs%
+}
+catch e
+{
+e:="Element " e.what " with message =  " e.message " in line = " e.line
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : WARN [cleanlic] Clean lic  is Error cos,: %e% `n,%logs%
+return
+}
+Loop, parse,textlic,`n,
+{
+ifinstring,A_LoopField,</pre><pre>Bindings
+{
+StringLeft,nomberlic,A_LoopField,1
+stringreplace,nomberlic,nomberlic,%A_Tab%,,all
+stringreplace,nomberlic,nomberlic,%A_SPACE%,,all
+stringreplace,nomberlic,nomberlic,`n,,all
+break
+}
+}
+if (nomberlic = 0)
+{
+Try
+{
+whr.Open("GET",clean, false)
+whr.Send()
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [cleanlic] sucsess `n,%logs%
+}
+catch e
+{
+e:="Element " e.what " with message =  " e.message " in line = " e.line
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : WARN [cleanlic] Clean lic  is Error cos,: %e% `n,%logs%
+}
+}
+}
+changeappdata(edition)
+{
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [changeappdata] is Started for %MyEdit% which is %edition% `n,%logs%
+if (edition = "default")
+{
+Edit:="Rms"
+}
+if (edition = "chain")
+{
+Edit:="Chain"
+}
+FileEncoding ,UTF-8
+chahge = 0
+chahgeadr = 0
+Loop
+{
+cha = 0
+FileReadLine, line, %appdata%\iiko\%Edit%\Default\config\backclient.config.xml , %A_Index%
+if ErrorLevel
+{
+break
+}
+IfInString,Line,<Port>
+If chahge = 0
+{
+FileAppend,<Port>%port%</Port>`n, %appdata%\iiko\%Edit%\Default\config\backclient1.config.xml , UTF-8
+chahge = 1
+cha = 1
+}
+IfInString,Line,<ServerAddr>
+If chahgeadr < 2
+{
+FileAppend,<ServerAddr>%site%</ServerAddr>`n, %appdata%\iiko\%Edit%\Default\config\backclient1.config.xml , UTF-8
+chahgeadr := chahgeadr+ 1
+cha = 1
+}
+IfInString,Line,<Edition>
+{
+FileAppend,<Edition></Edition>`n, %appdata%\iiko\%Edit%\Default\config\backclient1.config.xml , UTF-8
+cha = 1
+}
+IfInString,Line,<Login>
+{
+FileAppend,<Login>%Username%</Login>`n, %appdata%\iiko\%Edit%\Default\config\backclient1.config.xml , UTF-8
+cha = 1
+}
+If cha = 0
+{
+FileAppend,%Line%`n , %appdata%\iiko\%Edit%\Default\config\backclient1.config.xml , UTF-8
+}
+}
+FileDelete, %appdata%\iiko\%Edit%\Default\config\backclient.config.xml
+if ErrorLevel >0
+{
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : WARN [changeappdata] FileDelete is FAIL for %appdata%\iiko\%Edit%\Default\config\backclient.config.xml `n,%logs%
+}
+FileMove, %appdata%\iiko\%Edit%\Default\config\backclient1.config.xml,%appdata%\iiko\%Edit%\Default\config\backclient.config.xml
+if ErrorLevel >0
+{
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : WARN [changeappdata] FileMove is FAIL FROM %appdata%\iiko\%Edit%\Default\config\backclient1.config.xml TO %appdata%\iiko\%Edit%\Default\config\backclient.config.xml `n,%logs%
+}
+FileDelete, %appdata%\iiko\%Edit%\Default\entities_cache.bn
+if ErrorLevel >0
+{
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : WARN [changeappdata] FileDelete is FAIL for %appdata%\iiko\%Edit%\Default\entities_cache.bn `n,%logs%
+}
+}
+ProgressBar()
+{
+Gui, 5:Default
+if progresbar=1
+{
+GuiControl,, MyProg, +1
+}
+Gui,1:Default
+}
+logdelete:
+{
+FileGetSize, OutputVarS ,%A_Appdata%%log%,M
+if OutputVarS>2
+FileDelete %A_Appdata%%log%
+}
+configget:
+{
+FileAppend, `n`n`n,%logs%
+FileAppend,%A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [configget] Config read `n,%logs%
+IfExist %A_AppData%%configfile%
+{
+IniRead, OutputVar,%A_AppData%%configfile%, Base, WorkingDir
+SetWorkingDir, %OutputVar%
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [configget] WorkingDir is %OutputVar%   `n,%logs%
+IniRead, OutputVar,%A_AppData%%configfile%, Base, SCVER
+if OutputVar = ERROR
+{
+IniWrite, 0.1, %A_AppData%%configfile%, Base, SCVER
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [configget] SCVER is %OutputVar%   `n,%logs%
+}
+else
+{
+SCVER:= OutputVar
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [configget] SCVER is %OutputVar%   `n,%logs%
+}
+IniRead, OutputVar,%A_AppData%%configfile%, Base, monitorram
+if OutputVar = ERROR
+{
+IniWrite, 1, %A_AppData%%configfile%, Base, monitorram
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [configget] monitorram is %OutputVar%   `n,%logs%
+}
+else
+{
+monitorram:= OutputVar
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [configget] monitorram is %OutputVar%   `n,%logs%
+}
+IniRead, OutputVar,%A_AppData%%configfile%, Base, pathtordp
+if OutputVar = ERROR
+{
+IniWrite, %pathtordp%, %A_AppData%%configfile%, Base, pathtordp
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [configget] pathtordp is %OutputVar%   `n,%logs%
+}
+else
+{
+pathtordp:= OutputVar
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [configget] pathtordp is %OutputVar%   `n,%logs%
+}
+IniRead, OutputVar,%A_AppData%%configfile%, Base, WorkonSQL
+if OutputVar = ERROR
+{
+IniWrite, 1, %A_AppData%%configfile%, Base, WorkonSQL
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [configget] WorkonSQL is %OutputVar%   `n,%logs%
+}
+else
+{
+WorkonSQL:= OutputVar
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [configget] WorkonSQL is %OutputVar%   `n,%logs%
+}
+IniRead, OutputVar,%A_AppData%%configfile%, Base, monitorcon
+if OutputVar = ERROR
+{
+IniWrite, 0, %A_AppData%%configfile%, Base, monitorcon
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [configget] monitorcon is %OutputVar%   `n,%logs%
+}
+else
+{
+monitorcon:= OutputVar
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [configget] monitorcon is %OutputVar%   `n,%logs%
+}
+IniRead, OutputVar,%A_AppData%%configfile%, Base, progresbar
+if OutputVar = ERROR
+{
+IniWrite, 1, %A_AppData%%configfile%, Base, progresbar
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [configget] progresbar is %OutputVar%   `n,%logs%
+}
+else
+{
+progresbar:= OutputVar
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [configget] progresbar is %OutputVar%   `n,%logs%
+}
+IniRead, OutputVar,%A_AppData%%configfile%, Base, revisionCSV
+if OutputVar = ERROR
+{
+IniWrite, 0, %A_AppData%%configfile%, Base, revisionCSV
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [configget] revisionCSV is 0    `n,%logs%
+}
+else
+{
+revisionCSV:= OutputVar
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [configget] revisionCSV is   %OutputVar%   `n,%logs%
+}
+}
+Else
+{
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [configget] create config it`s first start?   `n,%logs%
+FileCreateDir, %A_AppData%\BacksIikoLemma
+if ErrorLevel
+{
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [configget] create config is FAIL   `n,%logs%
+return
+}
+FileAppend,, %A_AppData%%configfile%
+IniWrite, 0.1, %A_AppData%%configfile%, Base, SCVER
+SCVER:=0.1
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [configget] SCVER is 0.1   `n,%logs%
+FileAppend,, %A_AppData%%configfile%
+IniWrite, 0, %A_AppData%%configfile%, Base, monitorram
+monitorram:=0
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [configget] monitorram is 0   `n,%logs%
+IniWrite, 0, %A_AppData%%configfile%, Base, monitorcon
+monitorcon:=0
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [configget] monitorcon is 0   `n,%logs%
+IniWrite, %pathtordp%, %A_AppData%%configfile%, Base, pathtordp
+monitorcon:=pathtordp
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [configget] pathtordp is %pathtordp%   `n,%logs%
+IniWrite, 1, %A_AppData%%configfile%, Base, WorkonSQL
+WorkonSQL:=1
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [configget] WorkonSQL is 1   `n,%logs%
+IniWrite, 1, %A_AppData%%configfile%, Base, progresbar
+progresbar:=1
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [configget] progresbar is 1   `n,%logs%
+IniWrite, 0, %A_AppData%%configfile%, Base, revisionCSV
+revisionCSV:=0
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [configget] revisionCSV is 1   `n,%logs%
+FileSelectFolder, OutputVar , A_ScriptDir,1, Укажите папку с бэками
+if ErrorLevel
+{
+IniWrite, %A_WorkingDir%, %A_AppData%%configfile%, Base, WorkingDir
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [configget] Path to bakcs is %A_WorkingDir%  `n,%logs%
+}
+else
+{
+IniWrite, %OutputVar%, %A_AppData%%configfile%, Base, WorkingDir
+SetWorkingDir, %OutputVar%
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [configget] Path to bakcs is %OutputVar%  `n,%logs%
+}
+}
+}
+loadforms:
+{
+StringCaseSense, Locale
+FileAppend,`n`n ******* %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : Let`s get it started *******  `n,%logs%
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [loadforms] Load lists backs `n,%logs%
+greenwichtimeget()
+loadlistback:
+{
+Loop Files, %A_WorkingDir%%pathtoback%, R
+{
+countP:=A_Index
+}
+if progresbar=1
+{
+GUi, 5:add, Progress, w200 h30 x10 y20 cAqua BackgroundNavy -Smooth Range0-%CountP%   vMyProg
+Gui, 5:Show,, Загрузка
+}
+Loop Files, %A_WorkingDir%%pathtoback%, R
+{
+ProgressBar()
+FileGetVersion, OutputVar , %A_LoopFileFullPath%
+IfInString, A_LoopFileFullPath, RMS
+LV_Add("","RMS", OutputVar, A_LoopFileFullPath)
+IfInString, A_LoopFileFullPath, CHAIN
+LV_Add("","CHAIN", OutputVar, A_LoopFileFullPath)
+}
+Gui, 5:Destroy
+Gui, 1:Default
+statusbar()
+LV_ModifyCol()
+LV_ModifyCol(1,"Sort")
+}
+loadlistRDP:
+{
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [loadforms] Load lists RDP `n,%logs%
+Gui, ListView, MyListView1
+Loop Files, %pathtordp%\*.rdp
+{
+LV_Add("",A_LoopFilename)
+}
+LV_ModifyCol()
+}
+installSQLSync()
+installLogo()
+checkpass:
+{
+FileAppend,%A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [checkpass] Started `n,%logs%
+ifExist, %fpcr%
+{
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [checkpass] file PASS exist `n,%logs%
+Crypt.Encrypt.FileDecrypt(fpcr,fpNotcr,passtocr,3,1)
+filedelete %fpcr%
+FileRead out,%fpNotcr%
+Env_UserDel("pass_for_ahk")
+Env_UserNew("pass_for_ahk",out)
+Loop, Read, %fpNotcr%
+{
+artemp:= StrSplit(A_LoopReadLine,";")
+arrayuser.Push(artemp[1])
+arraypass.Push(artemp[2])
+}
+Crypt.Encrypt.FileEncrypt(fpNotcr,fpcr,passtocr,3,1)
+filedelete %fpNotcr%
+}
+else
+{
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [checkpass] file NOT exist then load default `n,%logs%
+Loop % arUsHelp.MaxIndex()
+{
+fu:=arUsHelp[A_Index]
+fp:=arPsHelp[A_Index]
+FileAppend,%fu%;%fp%`n, %fpNotcr%
+}
+FileRead out,%fpNotcr%
+Env_UserDel("pass_for_ahk")
+Env_UserNew("pass_for_ahk",out)
+Loop, Read, %fpNotcr%
+{
+artemp:= StrSplit(A_LoopReadLine,";")
+arrayuser.Push(artemp[1])
+arraypass.Push(artemp[2])
+}
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [checkpass] load default list pass `n,%logs%
+Crypt.Encrypt.FileEncrypt(fpNotcr,fpcr,passtocr,3,1)
+filedelete %fpNotcr%
+}
+}
+loadtrayform:
+{
+Menu, Tray, Add, Развернуть, ShowGui
+Menu, Tray, Add, Настройки, Settings
+Menu, Tray, Add, Пароли, trPass
+Menu, Tray, Add
+Menu, Tray, Add, About, trAbout
+Menu, Tray, Add, Выход, ExitTr
+Menu, Tray, Icon,  %icon%
+Menu, Tray, NoStandard
+Menu, Tray, Click, 1
+Menu, Tray, Default, Развернуть
+}
+checkcli:
+{
+if NOT(FileExist(pathtocly))
+{
+FileAppend,,%pathtocly%
+}
+}
+checksql:
+{
+if WorkonSQL=1
+{
+GuiControl,Disable,DEV
+SetTimer, Penvsetforpass, 60000
+Process, Exist, SQLSync.exe
+if ErrorLevel = 0
+{
+run %pathtosqlexe%,,UseErrorLevel
+if ErrorLevel = ERROR
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [checksql] Error start of SqlSync `n,%logs%
+}
+else
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [checksql] SqlSync exe is NOT exist but have to `n,%logs%
+}
+Else
+{
+GuiControl,Enable,DEV
+Process, Exist, SQLSync.exe
+if NOT(ErrorLevel = 0)
+Process, Close, SQLSync.exe ,
+}
+}
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [loadforms] Load lists Clients `n,%logs%
+Gui ListView, MyListView2
+loadcsv()
+LV_ModifyCol(3,112)
+Gui, Show,,BOS %progvers%
+OnMessage( 0x111, "WM_Command" )
+CheckScriptUpdate()
+if broken = 1
+{
+MsgBox, 4, Выбор, Файл клиентов поврежден или не подходит под версию. Попытаться исправить?
+IfMsgBox Yes
+goto Button=V=
+}
+SetTimer SQLSYNC, 120000
+SetTimer CheckScriptUpdateOFFUser, 20000
+SetTimer CheckSqlSyncExist, 10000
+Gui ListView, MyListView2
+goSub colrow
+}
+return
+ShowGui:
+Gui, Show,,BOS %progvers%
+return
+MyListView:
+Gui, ListView, MyListView
+if A_GuiEvent = DoubleClick
+{
+LV_GetText(RowText, A_EventInfo,3)
+run %RowText%
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [MyListView] DoubleClick to %RowText% on Backs `n,%logs%
+}
+Gui, ListView, MyListView
+return
+MyListView1:
+Gui, ListView, MyListView1
+if A_GuiEvent = DoubleClick
+{
+LV_GetText(RowText, A_EventInfo,1)
+runrdp:=pathtordp "\" RowText
+run %runrdp%
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [MyListView1] DoubleClick to %RowText% on RDP `n,%logs%
+}
+Gui, ListView, MyListView1
+return
+MyListView2:
+Gui, ListView, MyListView2
+if A_GuiEvent = DoubleClick
+{
+if monitorram=1
+{
+SetTimer,statusbar,5000
+}
+Process, Priority,, High
+currowid := LV_GetNext(0, "F")
+LV_GetText(RowText, currowid)
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [MyListView2] DoubleClick to %RowText% on Clients `n,%logs%
+GuiControl,,MyEdit,%RowText%
+MyEdit = %RowText%
+if currowid = 0
+return
+else
+{
+Gui, ListView, MyListView
+getconnections(MyEdit)
+connect()
+goto colrow
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [MyListView2] Connect to %MyEdit% on Clients `n,%logs%
+Gui, ListView, MyListView
+}
+}
+if A_GuiEvent = Normal
+{
+sleep, 10
+if monitorram=1
+{
+SB_SetParts(150,150,700,300,40)
+SB_SetText("",3)
+SB_SetText("",2)
+SB_SetText("",1)
+SB_SetText("",4)
+SetTimer,statusbar,5000
+}
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [MyListView2] Normal Click to %MyEdit% on Clients `n,%logs%
+currowid := LV_GetNext(0, "F")
+LV_GetText(RowText, currowid)
+GuiControl,,MyEdit,%RowText%
+MyEdit = %RowText%
+}
+if A_GuiEvent = RightClick
+{
+statusbarWin()
+}
+return
+colrow:
+if monitorcon = 1
+{
+if countcheck = 1
+{
+Gui ListView, MyListView2
+loop % LV_GetCount()
+{
+LV_GetText(retr,A_Index,5)
+LV_GetText(x,A_Index,6)
+StringReplace retr, retr,`n,,ALL
+StringReplace retr, retr,`r,,ALL
+StringReplace retr, retr,A_Space,,ALL
+if InStr(x,"X")
+{
+CLV.Cell(A_Index,5,"")
+continue
+}
+IfInString retr,1
+{
+LV_Modify(A_Index,,,,,,"")
+CLV.Cell(A_Index,5, 0xFAF30)
+}
+else
+{
+LV_Modify(A_Index,,,,,,"")
+CLV.Cell(A_Index,5, 0xF12345)
+}
+}
+WinSet, Redraw, , ahk_id %HLV%
+countcheck = 0
+}
+Gui ListView, MyListView2
+}
+return
+MySrcS:
+Gui, Submit, NoHide
+if GetKeyState(ENTER)=1
+msgbox % GetKeyState(ENTER )
+searchinlic(MySrcS)
+return
+Srbox:
+Gui, Submit, NoHide
+If Control in Edit2
+if GetKeyState(ENTER )=1
+msgbox % GetKeyState(ENTER )
+statusLVCL := 1
+Gosub ButtonПоиск
+return
+7GUISize:
+width:=A_GuiWidth-15
+height:=A_GuiHeight-15
+guicontrol, move, ListLic, w%width% h%height%
+return
+AboutGUISize:
+width:=A_GuiWidth-15
+height:=A_GuiHeight-150
+bx:= A_GuiWidth-63
+guicontrol, move, MLV, w%width% h%height%
+if width>455
+{
+guicontrol, move, BEx, x%bx%
+}
+return
+SQLSYNC:
+SetTimer SQLSYNC, 60000
+goto ButtonОбновить
+return
+saveclients:
+saveclients()
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : TIMER [saveclients] is STARTED`n,%logs%
+return
+CheckScriptUpdateOFFUser:
+CheckScriptUpdateOFFUser()
+goto colrow
+return
+fXDel:
+Gui, Submit, NOHide
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [fXDel] Change view of deleted Now it`s %XDel% `n,%logs%
+GuiControl, -Redraw, MyListView2
+loadcsv()
+LV_ModifyCol(6,"Sort Uni")
+GuiControl, +Redraw, MyListView2
+return
+CheckSqlSyncExist:
+{
+SetTimer CheckSqlSyncExist, 10000
+if FileExist(pathtosqlexe)
+{
+Process, Exist, SQLSync.exe
+if (ErrorLevel = 0)
+sqlsyncexist:=0
+Else
+sqlsyncexist:=1
+if  (sqlsyncexist=1) AND (WorkonSQL=0)
+{
+Process, Close, SQLSync.exe ,
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : TIMER [CheckSqlSyncExist] sqlsyncexist = %sqlsyncexist% and WorkonSQL = %WorkonSQL%`n,%logs%
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : TIMER [CheckSqlSyncExist] Close SQLSync.exe  `n,%logs%
+GuiControl,Enable,DEV
+}
+if  (sqlsyncexist=0) AND (WorkonSQL=1)
+{
+run %pathtosqlexe%,,
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : TIMER [CheckSqlSyncExist] sqlsyncexist = %sqlsyncexist% and WorkonSQL = %WorkonSQL%`n,%logs%
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : TIMER [CheckSqlSyncExist] Start SQLSync.exe cos it`s not exist but have to  `n,%logs%
+GuiControl,Disable,DEV
+}
+}
+}
+return
+Penvsetforpass:
+envsetforpass()
+return
+PassLock:
+{
+if WinActive("PASSLOCK")
+{
+Gui,ps:Submit,NoHide
+GuiControlGet, Password2
+while !GetKeyState("Enter")
+{
+if IsLabel(PassLock)
+Gosub PassLock
+if !WinActive("PASSLOCK")
+return
+}
+Gui,Submit,NoHide
+GuiControlGet, Password2
+goto psButtonOK
+}
+}
+return
+return
+MyEditEnt:
+{
+if WinActive("BOS")
+{
+Gui,Submit,NoHide
+GuiControlGet, MyEdit
+while !GetKeyState("Enter")
+{
+if IsLabel(MyEditEnt)
+Gosub MyEditEnt
+if !WinActive("BOS")
+return
+}
+Gui,Submit,NoHide
+GuiControlGet, MyEdit
+goto ButtonПодключиться
+}
+}
+return
+ButtonC:
+Gui, Submit, NoHide
+Gui,1:Default
+GuiControl,,SrBox,
+return
+ButtonDel:
+Gui, ListView, MyListView2
+{
+GuiControl, -Redraw, MyListView2
+Rownumber := LV_GetNext(0, "F")
+if Rownumber=
+{
+GuiControl, +Redraw, MyListView2
+return
+}
+cl:=
+l:=
+Dn:=
+v:=
+x:=
+LV_GetText(cl,Rownumber,1)
+LV_GetText(l,Rownumber,2)
+LV_GetText(Dn,Rownumber,3)
+LV_GetText(v,Rownumber,4)
+LV_GetText(x,Rownumber,6)
+if InStr(x,"X")
+{
+LV_Modify(Rownumber,,,,,,,"  ")
+LV_ModifyCol(6,"Sort Uni")
+saveclients()
+iterationREV()
+CLV.Clear()
+GuiControl, +Redraw, MyListView2
+return
+}
+else
+{
+XName.Push(cl)
+XLic.Push(l)
+XDopN.Push(Dn)
+XVer.Push(v)
+Xx.Push("X")
+if XDel=0
+{
+LV_Delete(Rownumber)
+LV_ModifyCol(6,"Sort Uni")
+}
+if XDel=1
+{
+LV_Modify(Rownumber,,,,,,,"X")
+LV_ModifyCol(6,"Sort Uni")
+}
+saveclients()
+GuiControl, +Redraw, MyListView2
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [ButtonDel] Delete %cl% is succsess `n,%logs%
+iterationREV()
+goto colrow
+}
+}
+return
+ButtonAdd:
+Gui, 6:Default
+Gui, 6:Submit, NoHide
+{
+gui, 6:+OwnDialogs
+Gui 6:Add, Text, x8 y8 w167 h23 +0x200, Сервер:порт
+Gui 6:add, Edit, x8 y32 w167 h21 vSerPorter
+Gui 6:Add, Text, x184 y8 w167 h23 +0x200, Лицензия
+Gui 6:Add, Edit, x184 y32 w167 h21  vNameCL
+Gui 6:Add, Text, x360 y8 w167 h23 +0x200, Название
+Gui 6:Add, Edit, x360 y32 w167 h21  vDopName
+Gui 6:Add, Text, x536 y8 w120 h23 +0x200, Версия
+Gui 6:Add, Edit, x536 y32 w120 h21  vVers
+Gui 6:Add, Button, x8 y66  h23, =V=
+Gui 6:Add, Button, x292 y66 w80 h23, Добавить
+Gui 6:Show, w664 h104, Добавить клиента
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [ButtonAdd] Form sucsess `n,%logs%
+}
+return
+6Button=V=:
+Gui, 6:Submit, NoHide
+sver=
+sern=
+if not(SerPorter = "")
+{
+GuiControl, -Redraw, MyListView2
+verification := verification(SerPorter,1)
+GuiControl,,Vers,%sver%
+GuiControl,,NameCL,%sern%
+}
+return
+6ButtonДобавить:
+Gui, 6:Submit, NoHide
+if not(SerPorter ="" and NameCL="")
+{
+f:=0
+FileRead, Temp, %A_AppData%%pathtoclients%
+Loop,parse,Temp,`n
+{
+If InStr(A_LoopField, SerPorter,false)
+{
+f:=1
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [ButtonAdd] Found match for %MyEdit% in %A_LoopField%  `n,%logs%
+break
+}
+}
+if f=1
+{
+MsgBox Клиент уже есть в списке
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [ButtonAdd] Client %MyEdit% already exist in lists  `n,%logs%
+}
+else
+{
+Gui, 1:Default
+Gui,ListView,ListView2
+verification(SerPorter,1)
+LV_Add("",SerPorter,sern,DopName,sver)
+saveclients()
+LV_ModifyCol()
+LV_ModifyCol(1,187)
+LV_ModifyCol(2,165)
+LV_ModifyCol(3,112)
+LV_ModifyCol(6,"Sort Uni")
+CheckScriptUpdate()
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [ButtonAdd] Client %SerPorter% added sucsess  `n,%logs%
+iterationREV()
+Gui,6:Default
+Gui, 6:Destroy
+Gui, 1:Default
+}
+}
+Else
+{
+MsgBox Пустые значения полей
+}
+return
+ButtonEdit:
+Gui, 5:Default
+Gui, 5:Submit, NoHide
+{
+Gui, 1:Default
+Gui,ListView,ListView2
+currowid := LV_GetNext(0, "F")
+LV_GetText(SerPorter, currowid,1)
+LV_GetText(NameCL, currowid,2)
+LV_GetText(DopName, currowid,3)
+LV_GetText(Vers, currowid,4)
+Gui, 5:Default
+gui, 5:+OwnDialogs
+Gui 5:Add, Text, x8 y8 w167 h23 +0x200, Сервер:порт
+Gui 5:add, Edit, x8 y32 w167 h21 vSerPorter,%SerPorter%
+Gui 5:Add, Text, x184 y8 w167 h23 +0x200, Лицензия
+Gui 5:Add, Edit, x184 y32 w167 h21  vNameCL,%NameCL%
+Gui 5:Add, Text, x360 y8 w167 h23 +0x200, Название
+Gui 5:Add, Edit, x360 y32 w167 h21  vDopName,%DopName%
+Gui 5:Add, Text, x536 y8 w120 h23 +0x200, Версия
+Gui 5:Add, Edit, x536 y32 w120 h21  vVers,%Vers%
+Gui,5:Add, Button, x8 y66 h23, =V=
+Gui 5:Add, Button, x292 y66 w80 h23, Сохранить
+Gui 5:Show, w664 h104, Изменить
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [ButtonEdit] Form load sacsess  `n,%logs%
+}
+return
+5Button=V=:
+Gui,5:Submit,NoHide
+sver=
+sern=
+if not(SerPorter = "Clients")
+{
+verification := verification(SerPorter,1)
+GuiControl,,Vers,%sver%
+GuiControl,,NameCL,%sern%
+}
+return
+5ButtonСохранить:
+Gui, 5:Submit, NoHide
+if not(SerPorter ="" and NameCL="")
+{
+Gui, 1:Default
+GuiControl, -Redraw, MyListView2
+Gui, Submit, NoHide
+Gui,ListView,ListView2
+loadcsv()
+LV_Modify(currowid,,SerPorter,NameCL,DopName,Vers)
+saveclients()
+loadcsv()
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [ButtonEdit] Form save %NameCL% sacsess  `n,%logs%
+iterationREV()
+Gui,5:Default
+Gui,5:Destroy
+GuiControl, +Redraw, MyListView2
+}
+Else
+{
+MsgBox Пустые значения полей
+}
+return
+ButtonПоиск:
+Gui Submit, NoHide
+Gui ListView, MyListView2
+if (SrBox!="")
+{
+loadcsv()
+statusLVCL :=1
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [ButtonПоиск] STATUS SAVE = %statusLVCL%`n,%logs%
+Gui ListView, MyListView2
+srArr:=[]
+Loop % LV_GetCount()
+{
+LV_GetText(RowText1,A_Index,1)
+LV_GetText(RowText2,A_Index,2)
+LV_GetText(RowText3,A_Index,3)
+LV_GetText(RowText4,A_Index,4)
+LV_GetText(RowText6,A_Index,6)
+if InStr(RowText1,SrBox,false) OR InStr(RowText2,SrBox,false) OR InStr(RowText3,SrBox,false) OR InStr(RowText4,SrBox,false)
+{
+i++
+srArr[i]:=[RowText1,RowText2,RowText3,RowText4,RowText6]
+ed := 1
+}
+}
+if ed=1
+{
+LV_Delete()
+For i, element in srArr
+{
+LV_Add("",srArr[i][1],srArr[i][2],srArr[i][3],srArr[i][4],srArr[i][5])
+}
+}
+statusLVCL:=0
+}
+else
+{
+srArr:=[]
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [ButtonПоиск] STATUS SAVE = %statusLVCL%`n,%logs%
+loadcsv()
+return
+}
+Gui ListView, MyListView2
+statusLVCL := 0
+return
+Up:
+goto ButtonОбновить
+return
+ButtonОбновить:
+Gui Submit, NoHide
+Gui, ListView, MyListView2
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [ButtonОбновить] Get update  `n,%logs%
+loadcsv()
+CheckScriptUpdate()
+goto colrow
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [ButtonОбновить] is OVER  `n,%logs%
+Gui ListView, MyListView2
+return
+Button=V=:
+Gui Submit, NoHide
+GuiControl, -Redraw, MyListView2
+Gui, ListView, MyListView2
+{
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [Button=V=] is STARTED for ALL Clients `n,%logs%
+SB_SetParts(150,150,700,300,40)
+SB_SetText("Проверка корректности",4)
+FileRead, TempCL, %A_AppData%%pathtoclients%
+broken:=0
+co:=0
+CoB2:=0
+CoB1:=0
+TempCLServ:=[]
+TempCLDop:=[]
+Loop, Parse, TempCL, `n
+{
+StringReplace,t, A_LoopField,`;,`;, UseErrorLevel
+co := ErrorLevel
+if co=3
+++%CoB2%
+if co=2
+++%CoB1%
+StringSplit,var, A_LoopField,;
+StringReplace var1, var1,`r,,
+StringReplace var1, var1,`n,,
+StringReplace var1, var1,`;,,
+if (var1 = "") OR (var1 = NULL) OR (var1 =)
+Continue
+TempCLServ.Push(var1)
+StringReplace var3, var3,`r,,
+StringReplace var3, var3,`n,,
+StringReplace var3, var3,`;,,
+TempCLDop.Push(var3)
+}
+loadcsv()
+if (co = 3) AND (CoB2 > 2)
+{
+msgbox 3
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : WARN [Button=V=] BROKEN type = 2: File Clients is broken, must be 4 delimiters but it %co%  and must be flag X `n,%logs%
+SB_SetText("Исправление",4)
+broken:=2
+}
+if (co = 2) AND (CoB1 > 2)
+{
+msgbox 2
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : WARN [Button=V=] BROKEN type = 1: File Clients is broken, must be 4 delimiters but it %co%  and must be flag X `n,%logs%
+SB_SetText("Исправление",4)
+broken:=1
+}
+if broken = 2
+{
+broken:=0
+LV_Delete()
+Loop % TempCLServ.MaxIndex()
+{
+LV_Add(,TempCLServ[A_index],,TempCLDop[A_Index])
+}
+SB_SetText("",4)
+verification(Server,2)
+}
+if broken = 1
+{
+broken:=0
+LV_Delete()
+Loop % TempCLServ.MaxIndex()
+{
+LV_Add(,TempCLServ[A_index])
+}
+}
+SB_SetText("",4)
+verification(Server,2)
+saveclients()
+loadcsv()
+}
+GuiControl, +Redraw, MyListView2
+return
+ButtonForceload:
+Gui Submit, NoHide
+getconnections(MyEdit)
+If (login(site,port) = 1)
+{
+connections=http://%site%:%port%/resto/service/import/forceNomenclatureImport.jsp?loadImages=0&forceReload=1&run=start
+Try
+{
+whr.Open("POST",connections, false)
+whr.Send()
+Msgbox Force load Успешен для %MyEdit%
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [ButtonForce] Force load sacsess for %MyEdit%  `n,%logs%
+}
+catch e
+{
+MsgBox, 16,, % "Force load is fail for " MyEdit "`n`nwhat: " e.what "`nfile: " e.file
+. "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
+e:="Element " e.what " with message =  " e.message " in line = " e.line
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : WARN [ButtonForce] Force load is NOT sacsess for %MyEdit% cos.: %e%   `n,%logs%
+}
+}
+return
+ButtonWEB:
+Gui Submit, NoHide
+Gui, ListView, MyListView2
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [ButtonWEB] Started   `n,%logs%
+getconnections(MyEdit)
+If (login(site,port) = 1)
+{
+connections=http://%site%:%port%/resto/
+IE := ComObjCreate("InternetExplorer.Application")
+IE.Visible := true
+IE.Navigate(connections)
+Wait(IE)
+pDoc := IE.Document
+pDoc.getElementByID("username").value := Username
+pDoc.getElementByID("password").value := Password
+pDoc.All.submit.Click()
+return
+Wait(IE) {
+while IE.readyState!=4 || IE.document.readyState != "complete" || IE.busy
+sleep 10
+}
+}
+Gui ListView, MyListView2
+return
+ButtonResetMq:
+Gui Submit, NoHide
+getconnections(MyEdit)
+If (login(site,port) = 1)
+{
+sqlresemq:="script=import+resto.iikobiz.testConnection.IikoBizConnectionService%3B%0D%0AIikoBizConnectionService.resetConsumers%28%29%3B%0D%0A&action=start"
+lic=%sqlgroovy%%sqlresemq%
+Try
+{
+whr.SetTimeouts(5000, 5000, 5000, 5000)
+whr.Open("GET",lic, false)
+whr.Send()
+Msgbox Reset rabbit mq Успешен для %MyEdit%
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [ButtonResetMq] Reset mq sacsess for %MyEdit%  `n,%logs%
+}
+catch e
+{
+MsgBox, 16,, % "Reset rabbit mq is fail for " MyEdit "`n`nwhat: " e.what "`nfile: " e.file
+. "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
+e:="Element " e.what " with message =  " e.message " in line = " e.line
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : WARN [ButtonResetMq] Reset mq is NOT sacsess for %MyEdit% cos.: %e%   `n,%logs%
+}
+}
+return
+ButtonMemClean:
+Gui Submit, NoHide
+getconnections(MyEdit)
+If (login(site,port) = 1)
+{
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [ButtonMemClean] Start get mem for %MyEdit%  `n,%logs%
+connections=http://%site%:%port%/resto/service/maintance/memClean.jsp?action=Run+Full+Garbage+Collection
+Try
+{
+SB_SetParts(150,150,700,300,40)
+SB_SetText("MemClean в процессе",4)
+whr.SetTimeouts(10000, 10000, 10000, 10000)
+whr.Open("GET",connections, false)
+whr.Send()
+SB_SetText("",4)
+msgbox Успешно для %MyEdit%
+SB_SetText("",4)
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [ButtonMemClean] get mem is Saccses for %MyEdit%  `n,%logs%
+}
+catch e
+{
+e:="Element " e.what " with message =  " e.message " in line = " e.line
+SB_SetText("",4)
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : WARN [ButtonMemClean] get Mem is FAIL for %MyEdit% cos.: %e%  `n,%logs%
+return
+}
+}
+return
+ButtonHealth:
+Gui Submit, NoHide
+getconnections(MyEdit)
+If (login(site,port) = 1)
+{
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [ButtonHealth] get health for %MyEdit%  `n,%logs%
+connections=http://%site%:%port%/resto/service/monitoring/health.jsp
+Try
+{
+whr.SetTimeouts(15000, 15000, 15000, 15000)
+whr.Open("GET",connections, false)
+whr.Send()
+textheal:= whr.ResponseText
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [ButtonHealth] get health is Saccses for %MyEdit%  `n,%logs%
+}
+catch e
+{
+MsgBox, 16,, % "Exception thrown!`n`nwhat: " e.what "`nfile: " e.file
+. "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
+e:="Element " e.what " with message =  " e.message " in line = " e.line
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : WARN [ButtonHealth] get health is FAIL for %MyEdit% cos.: %e%  `n,%logs%
+return
+}
+arrayAP := []
+AP:=""
+arrayDOC := []
+DOC:=""
+arrayIM := []
+IM:=""
+arrayTH := []
+TH:=""
+arrayRAM := []
+RAM:=""
+arrayHDD := []
+HDD:=""
+stringreplace,textheal,textheal,<td>`r`n,,all
+stringreplace,textheal,textheal,</td>`r`n,,all
+stringreplace,textheal,textheal,<tr>`r`n,,all
+stringreplace,textheal,textheal,</tr>`r`n,,all
+stringreplace,textheal,textheal,<td style="text-align: right">`r`n,,all
+stringreplace,textheal,textheal,`r,,all
+stringreplace,textheal,textheal,`r`n,,all
+stringreplace,textheal,textheal,title=",,all
+stringreplace,textheal,textheal,<th class="StatusGood"`r`n,,all
+stringreplace,textheal,textheal,<th class="StatusFatal"`r`n,,all
+stringreplace,textheal,textheal,</th>`n,,all
+loop, parse, textheal,`n
+{
+if InStr(A_LoopField,"Accounting period") OR inStr(A_LoopField,"Учетный период")
+{
+co:=A_Index
+loop, parse, textheal,`n
+{
+if InStr(A_LoopField,">P")
+break
+if A_index >= %co%
+{
+ArrayAP.Push(A_LoopField)
+AP=%AP%%A_LoopField%`n
+}
+}
+}
+if InStr(A_LoopField,"Document management") OR inStr(A_LoopField,"Документооборот")
+{
+co:=A_Index
+loop, parse, textheal,`n
+{
+if InStr(A_LoopField,">DOC")
+break
+if A_index >= %co%
+{
+ArrayAP.Push(A_LoopField)
+DOC=%DOC%%A_LoopField%`n
+}
+}
+}
+if InStr(A_LoopField,"Inventory management") OR Instr(A_LoopField,"Товары и склады")
+{
+co:=A_Index
+loop, parse, textheal,`n
+{
+if InStr(A_LoopField,">ST")
+break
+if A_index >= %co%
+{
+ArrayIM.Push(A_LoopField)
+IM=%IM%%A_LoopField%`n
+}
+}
+}
+if InStr(A_LoopField,"Till shifts") OR Instr(A_LoopField,"Кассовые смены")
+{
+co:=A_Index
+loop, parse, textheal,`n
+{
+if InStr(A_LoopField,">SES")
+break
+if A_index >= %co%
+{
+ArrayTH.Push(A_LoopField)
+TH=%TH%%A_LoopField%`n
+}
+}
+}
+if InStr(A_LoopField,"Random access memory") OR Instr(A_LoopField,"Оперативная память")
+{
+co:=A_Index
+loop, parse, textheal,`n
+{
+if InStr(A_LoopField,">RAM")
+break
+if A_index >= %co%
+{
+ArrayRAM.Push(A_LoopField)
+RAM=%RAM%%A_LoopField%`n
+}
+}
+}
+if InStr(A_LoopField,"Disk subsystem") OR Instr(A_LoopField,"Дисковая подсистема")
+{
+co:=A_Index
+loop, parse, textheal,`n
+{
+if InStr(A_LoopField,">HDD")
+break
+if A_index >= %co%
+{
+ArrayHDD.Push(A_LoopField)
+HDD=%HDD%%A_LoopField%`n
+}
+}
+}
+}
+stringreplace,AP,AP,Accounting period,Открытый период:
+stringreplace,AP,AP,Period according to iikoOffice settings:,В настройках Бэка:
+stringreplace,AP,AP,Current server period:,В настройках Сервера:
+stringreplace,AP,AP,Current user period:,Пользовательский период:
+stringreplace,DOC,DOC,            Document management,Инфа по докам:
+stringreplace,DOC,DOC,Number of unposted documents per week:,Количество не проведенных документов на неделе:
+stringreplace,DOC,DOC,",,
+stringreplace,IM,IM,Inventory management,Инфа по позициям:
+stringreplace,IM,IM,Number of negative balance items is over,Позиций с отрицательными остатками:
+stringreplace,IM,IM,Negative stock balances,Отрицательные остатки на складе
+stringreplace,TH,TH,Till shifts,Смены:,
+stringreplace,TH,TH,Number of unclosed till shifts per week:,Количество не закрытых смен на неделе:
+stringreplace,TH,TH,",,All
+stringreplace,RAM,RAM,Random access memory,ОЗУ:
+stringreplace,RAM,RAM,Free RAM:,Свободная ОЗУ:
+stringreplace,RAM,RAM,Used RAM:,Используемая томкатом ОЗУ:
+stringreplace,RAM,RAM,RAM limit:,Лимит по ОЗУ:
+stringreplace,HDD,HDD,Disk subsystem,Инфа по памяти хардов:
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [ButtonHealth] Health is filtered for %MyEdit%  `n,%logs%
+Gui, New
+Gui, Name: New, , Статус сервера
+Gui, Add, Edit, ReadOnly r35 x5 y5,1)%AP%`n`n2)%DOC%`n`n4)%TH%`n`n5)%RAM%`n`n6)%HDD%
+Gui, Add, Edit, ReadOnly r35 x+10 y5,3)%IM%`n`n
+Gui, Show
+}
+return
+Buttoniiko.biz:
+Gui Submit, NoHide
+getconnections(MyEdit)
+If (login(site,port) = 1)
+{
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [Buttoniiko.biz] get biz for %MyEdit%  `n,%logs%
+connections=http://%site%:%port%/resto/service/monitoring/iikoBizTestConnection.jsp
+IE1 := ComObjCreate("InternetExplorer.Application")
+IE1.Visible := true
+IE1.Navigate(connections)
+WaitIE(IE1)
+pDoc := IE1.Document
+pDoc.getElementByID("username").value := Username
+pDoc.getElementByID("password").value := Password
+pDoc.All.submit.Click()
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [Buttoniiko.biz] get biz for %MyEdit% saccsesfull `n,%logs%
+return
+WaitIE(IE1)
+{
+while IE1.readyState!=4 || IE1.document.readyState != "complete" || IE1.busy
+sleep 10
+}
+}
+return
+ButtonGroovy:
+Gui Submit, NoHide
+getconnections(MyEdit)
+If (login(site,port) = 1)
+{
+getserverinfo()
+test=import resto.db.CachedEntity; `n em.getAll("Department") `n .sort() { `n it.departmentId `n } `n .each() { `n out.println(String.format("`%s `%s (`%s)", `n it.id, it.name, it.departmentId)); `n };
+Gui gr:+hWndhMainWnd -Resize
+Gui gr:Font, s20 Bold cPurple, Arial
+Gui gr:Add, Text, x0 y0 w920 h41 +Center +0x400000 +E0x200 +0x1000, GROOVY
+Gui gr:Font
+Gui gr:Add, GroupBox, hWndhGrp x8 y48 w130 h252 +Left, ЛОГИ
+Gui gr:Add, Button, x16 y72 w80 h23, STARTUP
+Gui gr:Add, Button, x16 y128 w80 h23, ERROR
+Gui gr:Add, Button, x16 y184 w80 h23, JMS
+Gui gr:Add, Button, x16 y240 w80 h23, FULL
+Gui gr:Add, Text, x24 y96 w68 h23 +0x200, startup.log
+Gui gr:Add, Text, x24 y152 w70 h23 +0x200, error.log
+Gui gr:Add, Text, x24 y208 w70 h23 +0x200, jms.log
+Gui gr:Add, Text, x24 y266 w70 h23 +0x200, full.log
+Gui gr:Font, c0xBF0000
+Gui gr:Add, Text, x152 y40 w2 h567 +0x1 +0x10
+Gui gr:Font
+Gui gr:Add, Text, x168 y280 w120 h23 +0x200, Ответ:
+Gui gr:Add, Text, x168 y48 w120 h23 +0x200, Свой запрос:
+Gui gr:Add, Button, x824 y256 w80 h23, Жахнуть
+Gui gr:Add, Edit, veRequest x168 y72 w736 h180 +Multi,%test%
+Gui gr:Add, Edit, veResult x168 y304 w734 h292 +Multi
+Gui gr:Add, StatusBar,,
+SB_SetParts(917)
+Gui gr:Show, w917 h619, Grooooooooooooooovy!
+}
+return
+grButtonSTARTUP:
+Gui Submit, NoHide
+{
+GuiControl,, eResult,
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [grButtonSTARTUP] get Startup.log for %MyEdit%  `n,%logs%
+req:=
+req=String fileContents = new File('%Path%').text
+type=Startup.log
+Result:=BestGroovyReq(req,type,1)
+if StrLen(Result)<10
+{
+return
+}
+else
+{
+dir=%RArch%%Sern%\Startup\
+namefile=Startup%A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec%.log
+GuiControl,,eResult,
+GuiControl,, eResult,%Result%
+FileCreateDir %dir%
+FileAppend,%Result%, %dir%%namefile%
+run %dir%%namefile%
+}
+}
+Return
+grButtonERROR:
+Gui gr:Submit, NoHide
+{
+GuiControl,, eResult,
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [grButtonERROR] get Error.log for %MyEdit%  `n,%logs%
+req:=
+req=String fileContents = new File('%Path%').text
+type=error.log
+Result:=BestGroovyReq(req,type,1)
+if StrLen(Result)<10
+{
+return
+}
+else
+{
+dir=%RArch%%Sern%\Error\
+namefile=Error%A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec%.log
+GuiControl,, eResult,
+GuiControl,, eResult,%Result%
+FileCreateDir %dir%
+FileAppend,%Result%, %dir%%namefile%
+run %dir%%namefile%
+}
+}
+Return
+grButtonJMS:
+Gui gr:Submit, NoHide
+{
+GuiControl,, eResult,
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [grButtonJMS] get JMS.log for %MyEdit%  `n,%logs%
+req:=
+req=String fileContents = new File('%Path%').text
+type=JMS.log
+Result:=BestGroovyReq(req,type,1)
+if StrLen(Result)<10
+{
+return
+}
+else
+{
+dir=%RArch%%Sern%\JMS\
+namefile=JMS%A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec%.log
+GuiControl,, eResult,
+GuiControl,, eResult,%Result%
+FileCreateDir %dir%
+FileAppend,%Result%, %dir%%namefile%
+run %dir%%namefile%
+}
+}
+Return
+grButtonFULL:
+Gui Submit, NoHide
+{
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [grButtonFULL] get Full.log for %MyEdit%  `n,%logs%
+msgbox В разработке
+}
+Return
+grButtonЖахнуть:
+Gui Submit, NoHide
+{
+GuiControl,, eResult,
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [grButtonЖахнуть] get Manual Request for %MyEdit%  `n,%logs%
+Result:=BestGroovyReq(eRequest)
+GuiControl,, eResult,%Result%
+}
+Return
+ButtonПодключиться:
+Gui Submit, NoHide
+loadcsv()
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [ButtonПодключиться] Get connect to %MyEdit%  `n,%logs%
+SB_SetParts(150,150,700,300,40)
+SB_SetText("Подключение",3)
+SetTimer,statusbar,15000
+getconnections(MyEdit)
+serverinfo := getserverinfo()
+if (serverinfo[1] = "error" )
+return
+If (login(site,port) = 1)
+{
+SB_SetText("Пароль найден",3)
+changeappdata(serverinfo[3])
+SB_SetText("AppData изменена",3)
+Gui ListView, MyListView
+found := 0
+Loop % LV_GetCount()
+{
+LV_GetText(Retrieved3, A_Index, 3)
+LV_GetText(Retrieved2, A_Index, 2)
+LV_GetText(Retrieved1, A_Index, 1)
+if (serverinfo[2] = Retrieved2 and Retrieved1 ="CHAIN" and serverinfo[3]="chain")
+{
+run %Retrieved3%
+found = 1
+SB_SetText("Чейн",3)
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [ButtonПодключиться]  %MyEdit% is it chain  `n,%logs%
+break
+}
+if (serverinfo[2] = Retrieved2 and Retrieved1 ="RMS" and serverinfo[3]="default")
+{
+run %Retrieved3%
+found = 1
+SB_SetText("РМС",3)
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [ButtonПодключиться]  %MyEdit% is it RMS  `n,%logs%
+break
+}
+}
+Gui ListView, MyListView
+If found = 0
+{
+SB_SetText("",3)
+info:=serverinfo[2]"   "serverinfo[3]
+msgbox НЕТ НУЖНОГО ОФИСА, ДОБАВЬ!`n %info%
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : WARN [ButtonПодключиться] For %MyEdit% needable version backs not found `n,%logs%
+return
+}
+cleanlic(serverinfo[3])
+Gui ListView, MyListView2
+write1clients(MyEdit)
+classfound:=0
+DetectHiddenWindows, on
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [ButtonПодключиться] For %MyEdit% start to enter `n,%logs%
+WinWait Вход в систему
+if ErrorLevel
+{
+SB_SetText("",3)
+msgbox Не найдено активное окно.
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : WARN [ButtonПодключиться] For %MyEdit% enter win "vhod v system is NOT found"  `n,%logs%
+return
+}
+Else
+{
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [ButtonПодключиться] For %MyEdit% enter win "vhod v system found"  `n,%logs%
+WinGetClass, classtitle,Вход в систему
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [ButtonПодключиться] FOUND classtitle for Vhod v system is - %classtitle%  `n,%logs%
+Winget out,ControlList, Вход в систему
+out:=""
+Winget out,ControlList, Вход в систему
+sleep 1000
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [ButtonПодключиться] SEARCH CLASSNN  `n,%logs%
+Loop, Parse,out,`n
+{
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [ButtonПодключиться] %A_LoopField%  `n,%logs%
+IfInString, A_LoopField,.EDIT.
+{
+IfInString,A_LoopField,ad11
+{
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [ButtonПодключиться] %A_LoopField% exist in string EDIT and ad11  `n,%logs%
+class := A_LoopField
+classfound:=1
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [ButtonПодключиться] FINALLY found is -  %class%  `n,%logs%
+break
+}
+else
+{
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : WARN [ButtonПодключиться] Class not found `n,%logs%
+classfound:=0
+}
+}
+Else
+{
+classfound:=0
+}
+}
+WinActivate, ahk_class %classtitle%
+if ErrorLevel
+{
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : WARN [ButtonПодключиться] %classtitle% is NOT ATCIVE `n,%logs%
+}
+WinWaitActive,ahk_class %classtitle%
+if ErrorLevel = 0
+{
+if  classfound=1
+{
+SB_SetText("Класс определен",3)
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [ButtonПодключиться] (CLASSIC) Post Password for %class% where title is %classtitle%`n,%logs%
+WinActivate, ahk_class %classtitle%
+BlockInput On
+ControlSendRaw,%class%,%Password%,ahk_class %classtitle%
+sleep 1000
+ControlSend,%class%,{enter},ahk_class %classtitle%
+BlockInput Off
+}
+Else
+{
+SB_SetText("Класс НЕ определен",3)
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [ButtonПодключиться] (ONNAME) Post Password for name where title is %classtitle%`n,%logs%
+WinActivate, ahk_class %classtitle%
+BlockInput On
+sendinput {Raw}%Password%
+sleep 1000
+sendinput {enter}
+BlockInput Off
+}
+}
+else
+{
+SB_SetText("",3)
+msgbox Не дождались активности окна
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : WARN [ButtonПодключиться] %classtitle% is do not WAITACTIVE `n,%logs%
+}
+}
+DetectHiddenWindows, off
+SB_SetText("",3)
+WinWait %sern%,,25
+if ErrorLevel = 0
+{
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [ButtonПодключиться] CONNECT IS SACCSES for %sern%`n,%logs%
+}
+Else
+{
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : WARN [ButtonПодключиться] CONNECT IS FAIL for %sern%`n,%logs%
+}
+SB_SetText("",4)
+}
+return
+ButtonВерсия:
+Gui Submit, NoHide
+getconnections(MyEdit)
+serverinfo := getserverinfo()
+if (serverinfo[1] <> "error" )
+msgbox % serverinfo[1]
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [ButtonВерсия] Verison for %MyEdit% is geted  `n,%logs%
+return
+ButtonАктивность:
+Gui Submit, NoHide
+getconnections(MyEdit)
+If (login(site,port) = 1)
+{
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [ButtonАктивность] Get active lic for %MyEdit%  `n,%logs%
+connections=http://%site%:%port%/resto/service/monitoring/connections.jsp
+Try
+{
+whr.SetTimeouts(5000, 5000, 5000, 5000)
+whr.Open("GET",connections, false)
+whr.Send()
+textcon:= whr.ResponseText
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [ButtonАктивность] http connect is sucsess  `n,%logs%
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [ButtonАктивность] Get text lic  `n,%logs%
+}
+catch e
+{
+MsgBox, 16,, % "Exception thrown!`n`nwhat: " e.what "`nfile: " e.file
+. "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
+e:="Element " e.what " with message =  " e.message " in line = " e.line
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : WARN [ButtonHealth] get health is FAIL for %MyEdit% cos.: %e%  `n,%logs%
+return
+}
+index:=0
+Array:=[]
+stringreplace,textcon,textcon,<td>`r`n,,all
+stringreplace,textcon,textcon,</td>`r`n,,all
+stringreplace,textcon,textcon,<tr>`r`n,,all
+stringreplace,textcon,textcon,</tr>`r`n,,all
+stringreplace,textcon,textcon,<td style="text-align: right">`r`n,,all
+stringreplace,textcon,textcon,`r,,all
+Gui, 7:Default
+Gui, 7:Submit, NoHide
+Gui, 7:+Resize
+Gui, 7:Add, ListView,y35 r20 w670 vListLic gMyListView, IP Адресс|Комп|Имя Терминала|Логин|ID|Лиц
+Gui, 7:Add, Button,x10 y5, Сброс выбранной
+loop,parse,textcon,`n
+{
+if start= 1
+{
+index:=index+1
+stringreplace,LoopField,A_LoopField,%A_SPACE%,,all
+stringreplace,LoopField,LoopField,`r,,all
+Array[index]:=LoopField
+if (index = 10 )
+{
+index:=1
+LV_Add("",Array[2],Array[3],Array[4],Array[5],Array[6],Array[7])
+Array:=[]
+}
+}
+ifinstring,A_LoopField,activity</th>
+start:=1
+ifinstring,A_LoopField,</table>
+start:=0
+}
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [ButtonАктивность] Filtered text is sucsess  `n,%logs%
+LV_ModifyCol()
+Gui, 7:Show,AutoSize,Ативность Пользователей
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [ButtonАктивность] Form load is sucsess  `n,%logs%
+}
+return
+7ButtonСбросвыбранной:
+Gui,Submit, nohide
+gui, ListView,Listlic
+currowid := LV_GetNext(0, "F")
+LV_GetText(RowText, currowid,5)
+id:=RowText
+chcleanlic(id)
+LV_Delete(currowid)
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [ButtonАктивность] Delete row in lic   `n,%logs%
+return
+ButtonЛицензия:
+Gui Submit, NoHide
+SB_SetParts(150,150,700,300,40)
+SB_SetText("Запрос  лицензий",4)
+getconnections(MyEdit)
+If (login(site,port) = 1)
+{
+sqletlic:="script=import+resto.licensing.LicenseService%3B%0D%0ALicenseService.currentLicense.toString%28%29%3B%0D%0A&action=start"
+lic=%sqlgroovy%%sqletlic%
+Try
+{
+whr.SetTimeouts(5000, 5000, 5000, 5000)
+whr.Open("GET",lic, false)
+whr.Send()
+Var:= whr.ResponseText
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [ButtonЛицензия] http connect for %MyEdit% is sucsess   `n,%logs%
+}
+catch e
+{
+MsgBox, 16,, % "Ошибка соединения при запросе лицензии!`n`nwhat: " e.what "`nfile: " e.file
+. "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
+e:="Element " e.what " with message =  " e.message " in line = " e.line
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : WARN [ButtonЛицензия] http connect for %MyEdit% is FAIL cos.: %e%   `n,%logs%
+return
+}
+Var1=
+ArrayIDL:=[]
+ArrayLic:=[]
+ArrayBusy:=[]
+ArrayCount:=[]
+ArrayDatefrom:=[]
+ArrayDateto:=[]
+countactividl()
+loop, parse, var,`n
+{
+SB_SetText("Запрос  лицензий "A_Index,4)
+ifinstring,A_LoopField,Company
+Var1=%Var1%%A_LoopField%`n
+ifinstring,A_LoopField,SerialNumber
+Var1=%Var1%%A_LoopField%`n
+ifinstring,A_LoopField,Generated
+Var1=%Var1%%A_LoopField%`n
+ifinstring,A_LoopField,HardwareId
+Var1=%Var1%%A_LoopField%`n
+ifinstring,A_LoopField,CrmOrganizationId
+Var1=%Var1%%A_LoopField%`n
+ifinstring,A_LoopField,Expiration
+Var1=%Var1%%A_LoopField%`n
+if InStr(A_LoopField,"SERVER(0)")
+{
+co:=A_Index
+co:=co+1
+loop, parse, var,`n
+{
+if A_index >= %co%
+{
+RegExMatch(A_LoopField,"\(\d+\)",textIDL)
+StringReplace textIDL, textIDL,(,,
+StringReplace textIDL, textIDL,),,
+sovp=0
+for index, element in ArrayMON[1]
+{
+s:=
+s:= ArrayMON[1][index]
+if textIDL = %s%
+{
+i:=
+i:=ArrayMON[2][index]
+ArrayBusy.Push(i)
+sovp=1
+}
+}
+if sovp=0
+{
+ArrayBusy.Push("-")
+}
+ArrayIDL.Push(textIDL)
+FileAppend
+StringGetPos pos,A_LoopField,;
+pos:=pos+1
+StringtrimLeft, textlic,A_LoopField,pos
+StringGetPos pos,textlic,&
+textlic:=SubStr(textlic,1,pos)
+ArrayLic.Push(textlic)
+StringGetPos pos,A_LoopField,[
+pos:=pos+1
+StringtrimLeft, textcount,A_LoopField,pos
+textcount:=SubStr(textcount,1,2)
+ArrayCount.Push(textcount)
+RegExMatch(A_LoopField,"\d\d\d\d-\d\d-\d\d",textdatefrom)
+Arraydatefrom.Push(textdatefrom)
+RegExMatch(A_LoopField,"\d\d\d\d-\d\d-\d\d\)",textdateto)
+StringtrimRight, textdateto,textdateto,1
+ArrayDateto.Push(textdateto)
+}
+if InStr(A_LoopField,"</pre><pre>Bindings:")
+break
+}
+}
+}
+SB_SetText("",4)
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [ButtonЛицензия] Filtered for %MyEdit% is over   `n,%logs%
+Gui, About:Default
+Gui, Submit, NoHide
+Gui, About:+Resize
+Gui, About:Add, Edit, x5 y5 h100 w400 +ReadOnly vMyEdit1 , %Var1%
+Gui, About:Add, Edit, x5 y110  w401 vMySrcS gMySrcS,
+GUi, About:Add, Button,x557 y110 vBEx, Экспорт
+Gui, About:Add, ListView,x5 y135 h500  w605 Grid -Multi +hscroll vMLV -ReadOnly -WantF2, ID|Название|Кол-во|Занято|Начало|Конец
+Gui, ListView, MLV
+MaxIndex := ArrayLic.MaxIndex()-1
+Loop % MaxIndex
+{
+LV_Add(,ArrayIDL[A_Index],ArrayLic[A_Index],ArrayCount[A_Index],ArrayBusy[A_Index],ArrayDatefrom[A_Index],ArrayDateto[A_Index])
+}
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [ButtonЛицензия] Load form lic   `n,%logs%
+LV_ModifyCol(1,60)
+LV_ModifyCol(2,262)
+LV_ModifyCol(3,"50 Center")
+LV_ModifyCol(4,"50 Center SortDesc")
+LV_ModifyCol(5,80)
+LV_ModifyCol(6,80)
+Gui, About:Show,, Список лицензий
+}
+return
+AboutButtonЭкспорт:
+{
+Gui Submit, NoHide
+Gui ListView, MLV
+clipboard :=
+MaxIndex := ArrayLic.MaxIndex()-1
+Loop % MaxIndex
+{
+string := ArrayIDL[A_Index]";" ArrayLic[A_Index]";" ArrayCount[A_Index]";" ArrayDatefrom[A_Index]";" ArrayDateto[A_Index]
+tofile = %tofile%%string%`r`n
+}
+FileSelectFolder, OutputVar,A_Desktop,3,
+if ErrorLevel
+{
+return
+}
+Else
+{
+Fileappend,%tofile%,%OutputVar%%TempLic%
+run %OutputVar%%TempLic%
+}
+}
+return
+ButtonОбновитьЛиц:
+Gui Submit, NoHide
+getconnections(MyEdit)
+If (login(site,port) = 1)
+{
+sqlupdatelic:="script=import+resto.licensing.LicenseService%3B%0D%0ALicenseService.checkLicenseOnline%28true%29%3B%0D%0A&action=start"
+lic=%sqlgroovy%%sqlupdatelic%
+Try
+{
+whr.Open("GET",lic,false)
+whr.Send()
+msgbox Лиц Обновлена
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [ButtonОбновитьЛиц] http connect for %MyEdit% is sucsess  `n,%logs%
+}
+catch e
+{
+MsgBox, 16,, % "Exception thrown!`n`nwhat: " e.what "`nfile: " e.file
+. "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
+e:="Element " e.what " with message =  " e.message " in line = " e.line
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : WARN [ButtonОбновитьЛиц] http connect ERROR for %MyEdit% cos.: %e%  `n,%logs%
+msgbox Ошибка соединения
+}
+}
+return
+trAbout:
+run https://tinyurl.com/wnzlnbm
+return
+trPass:
+gui, ps:Default
+{
+Gui, ps:Submit, NoHide
+Gui, ps:Add, Edit,  w100 Password gPassLock vPassword2
+Gui, ps:Add, Button,x50  ,OK
+Gui, ps:Show,,PASSLOCK
+}
+return
+psButtonOK:
+Gui, ps:Submit, NoHide
+if Password2 = %passtopass%
+{
+Gui,ps:Destroy
+gui, 2:Default
+Gui, 2:Submit, NoHide
+gui, 2:+OwnDialogs
+Gui, 2:Add, ListView, r20 w150 gMyListView vMyListViewP -ReadOnly -WantF2, Логин|Пароль
+gui, 2:Add, Button, x170 y60 , Добавить
+gui, 2:Add, Button, x170 y90 , Удалить
+gui, 2:Add, Button, x170 y120, Сохранить
+Gui, 2:Add, Edit, w90 x170 y6  v2Login, Логин
+Gui, 2:Add, Edit, w90 x170 y34  v2Pass, Пароль
+passcount :=0
+Gui, ListView, MyListView5
+loadpass()
+LV_ModifyCol(1,AutoHdr)
+Gui, ListView, MyListView5
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [ButtonПароли] load form Pass  `n,%logs%
+Gui, 2:Show,,Пароли
+}
+else
+{
+msgbox Неверный пароль
+Gui,Destroy
+}
+return
+2ButtonДобавить:
+Gui, 2:Submit, NoHide
+addpass:
+{
+Gui, ListView, MyListView5
+LV_Add("",2Login,2Pass)
+LV_ModifyCol(1,AutoHdr)
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [ButtonПароли] %2Login% and %2Pass% is added `n,%logs%
+passcount :=1
+Gui, ListView, MyListView5
+}
+return
+2ButtonУдалить:
+Gui, 2:Submit, NoHide
+deletepass:
+{
+Gui, ListView, MyListView5
+if A_GuiEvent Select
+Rownumber := LV_GetNext(1, "F")
+LV_Delete(Rownumber)
+LV_Modify(Rownumber)
+LV_ModifyCol()
+passcount :=1
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [ButtonПароли] %rownumber% is deleted from pass `n,%logs%
+Gui, ListView, MyListView5
+}
+return
+2ButtonСохранить:
+Gui, 2:Submit, NoHide
+Gui, ListView, MyListView5
+savepass()
+passcount :=0
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [ButtonПароли] Sucsess `n,%logs%
+Gui, ListView, MyListView5
+return
+Settings:
+Gui, 3:Default
+Gui, 3:Submit, NoHide
+{
+gui, 3:+OwnDialogs
+gui, 3:Add, Text, x20 y5 w169 h13, Указать путь до папки с бэками:
+Gui, 3:Add, Edit, x20 y25 w300 h21  vEBacks, %A_WorkingDir%
+Gui, 3:Add, Button, x325 y24 w87 h23, Выбрать_Бэки
+gui, 3:Add, Text, x20 y65 w154 h13, Указать путь до папки с RDP:
+Gui, 3:Add, Edit, x20 y85 w300 h21  vERDP, %pathtordp%
+Gui, 3:Add, Button, x325 y84 w85 h23, Выбрать_RDP
+gui, 3:Add, Text, x21 y119 w130 h13, Открыть файл Clients.csv:
+Gui, 3:Add, Edit, x20 y140 w300 h34  vEСlients, %A_AppData%%pathtoclients%
+Gui, 3:Add, Button, x325 y139 w91 h36, Открыть_Clients
+IniRead, OV, %A_AppData%%configfile%, Base, revisionCSV
+gui, 3:Add, Text, x24 y192 w121 h13, Текущяя итерация:
+Gui, 3:Add, Edit, x20 y213 w300 h34 vRev, %OV%
+Gui, 3:Add, Button,  x325 y212 w85 h23, Повысить
+Gui  3:Add, CheckBox, x20 y+25 h23 vMcon gMconSub, Мониторинг коннекта в блоке Клиентов
+Gui  3:Add, CheckBox, x20 y+10 h23 vMram gMramSub, Мониторинг оперативы в статус баре.
+Gui  3:Add, CheckBox, x20 y+10 h23 vPbar gPbarSub, Загрузочная форма при запуске.
+Gui  3:Add, CheckBox, x20 y+10 h23 vWsql gWsqlSub, Использовать внешнюю базу SQL клиентов
+if monitorcon = 0
+GuiControl,, Mcon,0
+Else
+GuiControl,, Mcon,1
+if monitorram = 0
+GuiControl,, Mram,0
+Else
+GuiControl,, Mram,1
+if progresbar = 0
+GuiControl,, Pbar,0
+Else
+GuiControl,, Pbar,1
+if WorkonSQL = 0
+GuiControl,, Wsql,0
+Else
+GuiControl,, Wsql,1
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [ButtonНастройки] Form load is Sucsess `n,%logs%
+}
+GUI, 3:Show,,Настройки
+return
+MconSub:
+Gui, 3:Submit, NoHide
+{
+if Mcon = 0
+{
+monitorcon:=0
+IniWrite, 0, %A_AppData%%configfile%, Base, monitorcon
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [ButtonНастройки] Monitoring connection is Disable `n,%logs%
+Gui, 1:Default
+Gui, 1:Submit, NoHide
+Gui ListView, MyListView2
+CLV.Clear()
+goto Up
+Gui, 3:Default
+Gui, 3:Submit, NoHide
+}
+if Mcon = 1
+{
+monitorcon:=1
+IniWrite, 1, %A_AppData%%configfile%, Base, monitorcon
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [ButtonНастройки] Monitoring connection is Enable `n,%logs%
+Gui, 1:Default
+Gui, 1:Submit, NoHide
+Gui ListView, MyListView2
+goto Up
+Gui, 3:Default
+Gui, 3:Submit, NoHide
+}
+}
+Return
+MramSub:
+Gui, 3:Submit, NoHide
+{
+if Mram = 0
+{
+monitorram:=0
+IniWrite, 0, %A_AppData%%configfile%, Base, monitorram
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [ButtonНастройки] Monitoring ram is Disable `n,%logs%
+Gui, 1:Default
+SB_SetParts(150,150,800,300,20)
+SB_SetText("",1)
+SB_SetText("",2)
+SB_SetText("",3)
+SB_SetText("",4)
+Gui, 3:Default
+}
+if Mram = 1
+{
+monitorram:=1
+IniWrite, 1, %A_AppData%%configfile%, Base, monitorram
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [ButtonНастройки] Monitoring ram is Enable `n,%logs%
+Gui, 1:Default
+SB_SetParts(150,150,800,300,20)
+SB_SetText("",1)
+SB_SetText("",2)
+SB_SetText("",3)
+SB_SetText("",4)
+Gui, 3:Default
+}
+}
+return
+PbarSub:
+Gui, 3:Submit, NoHide
+{
+if Pbar = 0
+{
+progresbar:=0
+IniWrite, 0, %A_AppData%%configfile%, Base, progresbar
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [ButtonНастройки] progresbar is Disable`n,%logs%
+}
+if Pbar = 1
+{
+progresbar:=1
+IniWrite, 1, %A_AppData%%configfile%, Base, progresbar
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [ButtonНастройки]  progresbar is Enable `n,%logs%
+}
+}
+Return
+WsqlSub:
+Gui, 3:Submit, NoHide
+{
+if Wsql = 0
+{
+WorkonSQL:=0
+IniWrite, 0, %A_AppData%%configfile%, Base, WorkonSQL
+Env_UserDel("pass_for_ahk")
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [ButtonНастройки] WorkonSQL is Disable`n,%logs%
+Gui,1:Default
+GuiControl,Enable,DEV
+Gui,3:Default
+Process, Close, SQLSync.exe ,
+}
+if Wsql = 1
+{
+WorkonSQL:=1
+SetTimer, Penvsetforpass, 120000
+IniWrite, 1, %A_AppData%%configfile%, Base, WorkonSQL
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [ButtonНастройки]  WorkonSQL is Enable `n,%logs%
+Gui,1:Default
+GuiControl,Disable,DEV
+Gui,3:Default
+Crypt.Encrypt.FileDecrypt(fpcr,fpNotcr,passtocr,3,1)
+filedelete %fpcr%
+FileRead out,%fpNotcr%
+Env_UserDel("pass_for_ahk")
+Env_UserNew("pass_for_ahk",out)
+Crypt.Encrypt.FileEncrypt(fpNotcr,fpcr,passtocr,3,1)
+filedelete %fpNotcr%
+Process, Exist, SQLSync.exe
+if ErrorLevel = 0
+{
+if FileExist (pathtosqlexe)
+run %pathtosqlexe%,,
+Else
+{
+installSQLSync()
+run %pathtosqlexe%,,
+}
+}
+}
+}
+Return
+3ButtonВыбрать_Бэки:
+Gui, 3:Submit, NoHide
+Gui +OwnDialogs
+FileSelectFolder, OutputVar,,3
+if ErrorLevel = 1
+{
+return
+}
+Else
+{
+GuiControl,, EBacks,%OutputVar%
+IniWrite, %OutputVar%, %A_AppData%%configfile%, Base, WorkingDir
+SetWorkingDir, %OutputVar%
+Gui,1:Default
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [ButtonНастройки] work path for backs is changed `n,%logs%
+floadforms()
+goto colrow
+While yes!=1
+{
+sleep 10
+}
+Gui,3:Default
+}
+return
+3ButtonВыбрать_RDP:
+Gui, 3:Submit, NoHide
+FileSelectFolder, OutputVar,,3
+if ErrorLevel = 1
+{
+return
+}
+Else
+{
+OutputVar := OutputVar "\"
+GuiControl,, ERDP,%OutputVar%
+IniWrite, %OutputVar%, %A_AppData%%configfile%, Base, pathtordp
+Gui,1:Default
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [ButtonНастройки] work path for RDP is changed on %OutputVar%  `n,%logs%
+floadforms()
+While yes!=1
+{
+sleep 10
+}
+Gui,3:Default
+}
+Return
+3ButtonОткрыть_Clients:
+Gui, 3:Submit, NoHide
+Run, %A_AppData%%pathtoclients%, , max
+return
+3ButtonПовысить:
+Gui, 3:Submit, NoHide
+revisionCSV:=revisionCSV+1
+GuiControl,, Rev,%revisionCSV%
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [iterationREV] ITERATION COMPLETE. NEW = %OutputVar%  `n,%logs%
+IniWrite, %revisionCSV%, %A_AppData%%configfile%, Base, revisionCSV
+return
+psGuiClose:
+{
+Gui,Destroy
+}
+return
+grGuiClose:
+{
+Gui,Destroy
+}
+return
+AboutGuiClose:
+{
+Gui,Destroy
+}
+return
+AboutGuiEscape:
+{
+Gui,Destroy
+}
+Return
+5GuiClose:
+{
+Gui,Destroy
+}
+return
+MoGuiClose:
+{
+stopformon := 1
+Gui,Destroy
+}
+return
+7GuiClose:
+{
+Gui,Destroy
+}
+return
+6GuiClose:
+{
+Gui,Destroy
+}
+return
+3GuiClose:
+{
+Gui,Destroy
+}
+return
+2GuiClose:
+{
+if passcount=1
+msgbox,4,Выбор, Данные не сохранены. Сохранить?
+ifmsgbox Yes
+savepass()
+Gui, Destroy
+}
+return
+ExitTr:
+{
+Env_UserDel("pass_for_ahk")
+Process, Exist, SQLSync.exe
+if NOT(ErrorLevel = 0)
+{
+Process, Close, SQLSync.exe ,
+Env_UserDel("pass_for_ahk")
+}
+FileAppend, %A_Year%-%A_Mon%-%A_DD% %A_Hour%-%A_Min%-%A_Sec% : [GuiClose] MAIN WIN CLOSE `n,%logs%
+ExitApp
+}
+return
+GuiClose:
+{
+Gui,Hide
+}
+return

@@ -27,7 +27,7 @@ namespace QuickRMS.Forms
 
             tb_rms.Text = Properties.Settings.Default.PathRMS;
             tb_rms_ico.Text = Properties.Settings.Default.PathRMSico;
-
+            tb_timer.Text = Properties.Settings.Default.TimeStart.ToString();
 
             cb_alt_run.Checked = Properties.Settings.Default.AltRunRMS;
         }
@@ -43,7 +43,7 @@ namespace QuickRMS.Forms
 
                 tb_strConnection.Text = connection.CheckConnectionSafe(tb_strConnection.Text);
                 tb_version.Text = connection.GetServerVersion(tb_strConnection.Text);
-
+                //new Wait().Show();
                 bw_animation.CancelAsync();
             }
             catch (Exception)
@@ -189,6 +189,23 @@ namespace QuickRMS.Forms
             }
         }
 
+
+        delegate void Delegate(BackgroundWorker bw_animation);
+        Delegate del = new Delegate(WaitAnswer);
+       
+        private static void WaitAnswer(BackgroundWorker bw_animation)
+        {
+
+            Wait form = new Wait();
+            form.Show();
+            form.Focus();
+            while (!bw_animation.CancellationPending) { }
+            form.Close();
+        }
+        void CallBackFunc(IAsyncResult aRes)
+        {
+            del.EndInvoke(aRes);
+        }
         private void btn_help_Click(object sender, EventArgs e)
         {
 
@@ -201,12 +218,10 @@ namespace QuickRMS.Forms
 
         private void bw_animation_DoWork(object sender, DoWorkEventArgs e)
         {
-            var wait = new Wait();
-            wait.Show();
-            wait.Focus();
-
-            while (!bw_animation.CancellationPending) { }
-            wait.Close();
+            del.BeginInvoke(bw_animation, new AsyncCallback(CallBackFunc), null);
+            
+          
+            
         }
 
         private void btn_reloadversion_Click(object sender, EventArgs e)
@@ -250,6 +265,9 @@ namespace QuickRMS.Forms
         {
             Properties.Settings.Default.PathRMS = tb_rms.Text;
             Properties.Settings.Default.PathRMSico = tb_rms_ico.Text;
+            Properties.Settings.Default.TimeStart = Convert.ToInt32(tb_timer.Text);
+
+            Properties.Settings.Default.Save();
         }
 
         private void btn_opn_rms_Click(object sender, EventArgs e)
@@ -277,58 +295,81 @@ namespace QuickRMS.Forms
             ///если в папке нет нужного файла проверить есть ли папка Office -> искать в ней
             ///сохранить все пути к BackOffice.exe, флаг чейна, версию из свойства BackOffice.exe
             ///создать ярлыки в папке Properties.Settings.Default.PathRMSico с изменением имени файла и указанием версии
+
+
+            ///рабочая версия 1 с поиском глубиной 2 при единичном включении
+            //try
+            //{
+            //    btn_save_ico_Click(null, null);
+            //    var backname = "BackOffice.exe";
+            //    var backFolder = "Office";
+            //    var backConfig = "Common.Settings.config";
+            //    var folders = Directory.GetDirectories(tb_rms.Text);
+            //    var fileRMS = new List<RMSico>();
+            //    foreach (var folder in folders)
+            //    {
+            //        var files = Directory.GetFiles(folder);
+            //        //var folderrms = Directory.GetDirectories(folder);
+            //        var fiel = files.Where(data => data.Contains(backname));
+            //        if (fiel.Count() == 0)
+            //        {
+            //            if (Directory.Exists(Path.Combine(folder, backFolder)))
+            //            {
+            //                fiel = Directory.GetFiles(Path.Combine(folder, backFolder)).Where(data => data.Contains(backname));
+            //                if (fiel.Count() == 0)
+            //                    continue;
+            //                else
+            //                {
+            //                    var rms = GetFileInfo(fiel.First());
+            //                    fileRMS.Add(rms);
+            //                    CreateLink(rms.File, rms.ToString());
+            //                    if (cb_xml_config.Checked)
+            //                    {
+            //                        RenamedXmlRMSConfig(Directory.GetFiles(Path.Combine(folder, backFolder)).Where(data => data.Contains(backConfig)).First(), rms.Version, rms.IsChain);
+
+
+            //                    }
+            //                }
+
+            //            }
+            //            else
+            //                continue;
+            //        }
+            //        else
+            //        {
+            //            var rms = GetFileInfo(fiel.First());
+            //            fileRMS.Add(rms);
+            //            CreateLink(rms.File, rms.ToString());
+            //            if (cb_xml_config.Checked)
+            //            {
+            //                RenamedXmlRMSConfig(Directory.GetFiles(folder).Where(data => data.Contains(backConfig)).First(), rms.Version, rms.IsChain);
+
+            //            }
+            //        }
+            //    }
+            //    MessageBox.Show($@"Ярлыки созданы в папке {tb_rms_ico.Text}");
+
+            //}
+            //catch (Exception ex)
+            //{
+            //    MessageBox.Show(ex.Message, "Ошибка");
+            //}
+
+
+            ///версия 2 поиск по всем вложенным папкам
             
             try
             {
                 btn_save_ico_Click(null, null);
                 var backname = "BackOffice.exe";
-                var backFolder = "Office";
-                var backConfig = "Common.Settings.config";
-                var folders = Directory.GetDirectories(tb_rms.Text);
-                var fileRMS = new List<RMSico>();
-                foreach (var folder in folders)
+                var files = Directory.GetFiles(tb_rms.Text, backname, SearchOption.AllDirectories);
+                foreach (var item in files)
                 {
-                    var files = Directory.GetFiles(folder);
-                    //var folderrms = Directory.GetDirectories(folder);
-                    var fiel = files.Where(data => data.Contains(backname));
-                    if (fiel.Count() == 0)
-                    {
-                        if (Directory.Exists(Path.Combine(folder,backFolder)))
-                        {
-                            fiel = Directory.GetFiles(Path.Combine(folder, backFolder)).Where(data => data.Contains(backname));
-                            if (fiel.Count() == 0)
-                                continue;
-                            else
-                            {
-                                var rms = GetFileInfo(fiel.First());
-                                fileRMS.Add(rms);
-                                CreateLink(rms.File, rms.ToString());
-                                if (cb_xml_config.Checked)
-                                {
-                                    RenamedXmlRMSConfig(Directory.GetFiles(Path.Combine(folder, backFolder)).Where(data => data.Contains(backConfig)).First(), rms.Version, rms.IsChain);
-                                    
-
-                                }
-                            }
-                                
-                        }
-                        else
-                            continue;
-                    }
-                    else
-                    {
-                        var rms = GetFileInfo(fiel.First());
-                        fileRMS.Add(rms);
-                        CreateLink(rms.File, rms.ToString());
-                        if (cb_xml_config.Checked)
-                        {
-                            RenamedXmlRMSConfig(Directory.GetFiles(folder).Where(data => data.Contains(backConfig)).First(), rms.Version, rms.IsChain);
-                            
-                        }
-                    }
+                    var rms = GetFileInfo(item);
+                    CreateLink(rms.File, rms.ToString());
+                    
                 }
-                MessageBox.Show($@"Ярлыки созданы в папке {tb_rms_ico.Text}");
-                
+                MessageBox.Show($@"Создано {files.Count()} ярлыков в папке {tb_rms_ico.Text}");
             }
             catch (Exception ex)
             {
@@ -545,6 +586,30 @@ namespace QuickRMS.Forms
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message, "Ошибка");
+            }
+        }
+
+        private void btn_OpenDB_Click(object sender, EventArgs e)
+        {
+            var pathdb = Path.Combine(Directory.GetCurrentDirectory(), SqlManager.GetInstance().FolderDB, SqlManager.GetInstance().NameDB);
+            try
+            {
+                
+                Process.Start(pathdb);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(pathdb + '\n' + ex.Message, "Ошибка при открытии файла");
+            }
+        }
+
+        private void tb_timer_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            char number = e.KeyChar;
+
+            if (!Char.IsDigit(number) && number != 8)
+            {
+                e.Handled = true;
             }
         }
     }

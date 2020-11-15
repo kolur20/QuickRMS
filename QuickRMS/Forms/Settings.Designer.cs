@@ -31,6 +31,10 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Settings));
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
+            this.tb_password = new System.Windows.Forms.TextBox();
+            this.label9 = new System.Windows.Forms.Label();
+            this.tb_login = new System.Windows.Forms.TextBox();
+            this.label10 = new System.Windows.Forms.Label();
             this.btn_insert = new System.Windows.Forms.Button();
             this.cb_chain = new System.Windows.Forms.CheckBox();
             this.tb_co = new System.Windows.Forms.TextBox();
@@ -43,6 +47,7 @@
             this.label1 = new System.Windows.Forms.Label();
             this.tb_nameConnection = new System.Windows.Forms.TextBox();
             this.tabPage2 = new System.Windows.Forms.TabPage();
+            this.btn_OpenDB = new System.Windows.Forms.Button();
             this.btn_reloadversion = new System.Windows.Forms.Button();
             this.btn_SaveDB = new System.Windows.Forms.Button();
             this.tb_namedb = new System.Windows.Forms.TextBox();
@@ -58,6 +63,8 @@
             this.btn_import = new System.Windows.Forms.Button();
             this.cb_removeAll = new System.Windows.Forms.CheckBox();
             this.tabPage4 = new System.Windows.Forms.TabPage();
+            this.tb_timer = new System.Windows.Forms.TextBox();
+            this.label11 = new System.Windows.Forms.Label();
             this.cb_alt_run = new System.Windows.Forms.CheckBox();
             this.btn_cansel_settings = new System.Windows.Forms.Button();
             this.btn_replace_connection = new System.Windows.Forms.Button();
@@ -71,10 +78,6 @@
             this.tb_rms = new System.Windows.Forms.TextBox();
             this.label7 = new System.Windows.Forms.Label();
             this.bw_animation = new System.ComponentModel.BackgroundWorker();
-            this.tb_password = new System.Windows.Forms.TextBox();
-            this.label9 = new System.Windows.Forms.Label();
-            this.tb_login = new System.Windows.Forms.TextBox();
-            this.label10 = new System.Windows.Forms.Label();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -119,6 +122,38 @@
             this.tabPage1.Size = new System.Drawing.Size(716, 300);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Новое подключение";
+            // 
+            // tb_password
+            // 
+            this.tb_password.Location = new System.Drawing.Point(519, 99);
+            this.tb_password.Name = "tb_password";
+            this.tb_password.Size = new System.Drawing.Size(187, 23);
+            this.tb_password.TabIndex = 25;
+            // 
+            // label9
+            // 
+            this.label9.AutoSize = true;
+            this.label9.Location = new System.Drawing.Point(463, 102);
+            this.label9.Name = "label9";
+            this.label9.Size = new System.Drawing.Size(50, 16);
+            this.label9.TabIndex = 24;
+            this.label9.Text = "Пароль";
+            // 
+            // tb_login
+            // 
+            this.tb_login.Location = new System.Drawing.Point(143, 99);
+            this.tb_login.Name = "tb_login";
+            this.tb_login.Size = new System.Drawing.Size(187, 23);
+            this.tb_login.TabIndex = 23;
+            // 
+            // label10
+            // 
+            this.label10.AutoSize = true;
+            this.label10.Location = new System.Drawing.Point(8, 102);
+            this.label10.Name = "label10";
+            this.label10.Size = new System.Drawing.Size(45, 16);
+            this.label10.TabIndex = 22;
+            this.label10.Text = "Логин";
             // 
             // btn_insert
             // 
@@ -219,6 +254,7 @@
             // tabPage2
             // 
             this.tabPage2.BackColor = System.Drawing.Color.WhiteSmoke;
+            this.tabPage2.Controls.Add(this.btn_OpenDB);
             this.tabPage2.Controls.Add(this.btn_reloadversion);
             this.tabPage2.Controls.Add(this.btn_SaveDB);
             this.tabPage2.Controls.Add(this.tb_namedb);
@@ -229,6 +265,16 @@
             this.tabPage2.Size = new System.Drawing.Size(716, 300);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "Базы данных";
+            // 
+            // btn_OpenDB
+            // 
+            this.btn_OpenDB.Location = new System.Drawing.Point(385, 67);
+            this.btn_OpenDB.Name = "btn_OpenDB";
+            this.btn_OpenDB.Size = new System.Drawing.Size(90, 36);
+            this.btn_OpenDB.TabIndex = 22;
+            this.btn_OpenDB.Text = "Открыть БД";
+            this.btn_OpenDB.UseVisualStyleBackColor = true;
+            this.btn_OpenDB.Click += new System.EventHandler(this.btn_OpenDB_Click);
             // 
             // btn_reloadversion
             // 
@@ -374,6 +420,8 @@
             // tabPage4
             // 
             this.tabPage4.BackColor = System.Drawing.Color.WhiteSmoke;
+            this.tabPage4.Controls.Add(this.tb_timer);
+            this.tabPage4.Controls.Add(this.label11);
             this.tabPage4.Controls.Add(this.cb_alt_run);
             this.tabPage4.Controls.Add(this.btn_cansel_settings);
             this.tabPage4.Controls.Add(this.btn_replace_connection);
@@ -392,10 +440,27 @@
             this.tabPage4.TabIndex = 3;
             this.tabPage4.Text = "Ярлыки";
             // 
+            // tb_timer
+            // 
+            this.tb_timer.Location = new System.Drawing.Point(12, 127);
+            this.tb_timer.Name = "tb_timer";
+            this.tb_timer.Size = new System.Drawing.Size(586, 23);
+            this.tb_timer.TabIndex = 13;
+            this.tb_timer.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.tb_timer_KeyPress);
+            // 
+            // label11
+            // 
+            this.label11.AutoSize = true;
+            this.label11.Location = new System.Drawing.Point(9, 107);
+            this.label11.Name = "label11";
+            this.label11.Size = new System.Drawing.Size(170, 16);
+            this.label11.TabIndex = 12;
+            this.label11.Text = "Таймаут для запуска офиса";
+            // 
             // cb_alt_run
             // 
             this.cb_alt_run.AutoSize = true;
-            this.cb_alt_run.Location = new System.Drawing.Point(12, 209);
+            this.cb_alt_run.Location = new System.Drawing.Point(12, 260);
             this.cb_alt_run.Name = "cb_alt_run";
             this.cb_alt_run.Size = new System.Drawing.Size(213, 20);
             this.cb_alt_run.TabIndex = 11;
@@ -405,7 +470,7 @@
             // 
             // btn_cansel_settings
             // 
-            this.btn_cansel_settings.Location = new System.Drawing.Point(12, 163);
+            this.btn_cansel_settings.Location = new System.Drawing.Point(12, 214);
             this.btn_cansel_settings.Name = "btn_cansel_settings";
             this.btn_cansel_settings.Size = new System.Drawing.Size(160, 40);
             this.btn_cansel_settings.TabIndex = 10;
@@ -415,7 +480,7 @@
             // 
             // btn_replace_connection
             // 
-            this.btn_replace_connection.Location = new System.Drawing.Point(382, 163);
+            this.btn_replace_connection.Location = new System.Drawing.Point(178, 214);
             this.btn_replace_connection.Name = "btn_replace_connection";
             this.btn_replace_connection.Size = new System.Drawing.Size(160, 40);
             this.btn_replace_connection.TabIndex = 9;
@@ -426,7 +491,8 @@
             // cb_xml_config
             // 
             this.cb_xml_config.AutoSize = true;
-            this.cb_xml_config.Location = new System.Drawing.Point(12, 117);
+            this.cb_xml_config.Enabled = false;
+            this.cb_xml_config.Location = new System.Drawing.Point(12, 156);
             this.cb_xml_config.Name = "cb_xml_config";
             this.cb_xml_config.Size = new System.Drawing.Size(571, 20);
             this.cb_xml_config.TabIndex = 8;
@@ -436,7 +502,7 @@
             // 
             // btn_create_ico
             // 
-            this.btn_create_ico.Location = new System.Drawing.Point(548, 163);
+            this.btn_create_ico.Location = new System.Drawing.Point(548, 214);
             this.btn_create_ico.Name = "btn_create_ico";
             this.btn_create_ico.Size = new System.Drawing.Size(160, 40);
             this.btn_create_ico.TabIndex = 7;
@@ -511,38 +577,6 @@
             this.bw_animation.WorkerSupportsCancellation = true;
             this.bw_animation.DoWork += new System.ComponentModel.DoWorkEventHandler(this.bw_animation_DoWork);
             // 
-            // tb_password
-            // 
-            this.tb_password.Location = new System.Drawing.Point(519, 99);
-            this.tb_password.Name = "tb_password";
-            this.tb_password.Size = new System.Drawing.Size(187, 23);
-            this.tb_password.TabIndex = 25;
-            // 
-            // label9
-            // 
-            this.label9.AutoSize = true;
-            this.label9.Location = new System.Drawing.Point(463, 102);
-            this.label9.Name = "label9";
-            this.label9.Size = new System.Drawing.Size(50, 16);
-            this.label9.TabIndex = 24;
-            this.label9.Text = "Пароль";
-            // 
-            // tb_login
-            // 
-            this.tb_login.Location = new System.Drawing.Point(143, 99);
-            this.tb_login.Name = "tb_login";
-            this.tb_login.Size = new System.Drawing.Size(187, 23);
-            this.tb_login.TabIndex = 23;
-            // 
-            // label10
-            // 
-            this.label10.AutoSize = true;
-            this.label10.Location = new System.Drawing.Point(8, 102);
-            this.label10.Name = "label10";
-            this.label10.Size = new System.Drawing.Size(45, 16);
-            this.label10.TabIndex = 22;
-            this.label10.Text = "Логин";
-            // 
             // Settings
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
@@ -616,5 +650,8 @@
         private System.Windows.Forms.Label label9;
         private System.Windows.Forms.TextBox tb_login;
         private System.Windows.Forms.Label label10;
+        private System.Windows.Forms.Button btn_OpenDB;
+        private System.Windows.Forms.TextBox tb_timer;
+        private System.Windows.Forms.Label label11;
     }
 }

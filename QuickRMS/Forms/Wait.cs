@@ -15,7 +15,7 @@ namespace QuickRMS.Forms
         public Wait()
         {
             InitializeComponent();
-            //pb_wait.Enabled = pb_wait.Visible = true;
+            pb_wait.Enabled = pb_wait.Visible = true;
         }
     }
 }

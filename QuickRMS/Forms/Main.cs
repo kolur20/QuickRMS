@@ -36,17 +36,7 @@ namespace QuickRMS.Forms
 
         private void toolStrip_btn_Settings_Click(object sender, EventArgs e)
         {
-            var formsettings = new Settings();
-            TopMost = false;
-            formsettings.ShowDialog();
-            try
-            {
-
-                ReloadTreeView();
-                TopMost = true;
-            }
-            catch (Exception ex)
-            { MessageBox.Show(ex.Message, "Ошибка"); }
+          
         }
         void ReloadTreeView()
         {
@@ -109,7 +99,7 @@ namespace QuickRMS.Forms
             var connection = new ConnectionManager();
             try
             {
-                tb_server.Text += @"/resto";
+                
                 tb_server.Text = connection.CheckConnectionSafe(tb_server.Text);
                 lb_version.Text = connection.GetServerVersion(tb_server.Text);
                 tb_server.ReadOnly = true;
@@ -123,7 +113,8 @@ namespace QuickRMS.Forms
         private void lb_version_DoubleClick(object sender, EventArgs e)
         {
             tb_server.ReadOnly = false;
-            lb_version.Text = tb_server.Text = "";
+            lb_version.Text = "";
+            tb_server.Text = "";
         }
 
         private void notifyIcon_DoubleClick(object sender, EventArgs e)
@@ -187,11 +178,13 @@ namespace QuickRMS.Forms
 
         private void tv_servers_DoubleClick(object sender, EventArgs e)
         {
+            var str_ex = string.Empty;
             try
             {
                 var s = ((TreeView)sender).SelectedNode.Text;
                 var serv = Servers.Where(data => data.Name == s).First();
                 var process = new Process();
+                str_ex = RMSico.GetName(serv.Version, serv.isChain);
                 process.StartInfo.FileName = System.IO.Path.Combine(Properties.Settings.Default.PathRMSico, RMSico.GetName(serv.Version, serv.isChain));
                 if (Properties.Settings.Default.AltRunRMS)
                 {
@@ -250,10 +243,42 @@ namespace QuickRMS.Forms
                 //SendKeys.Send("restoresto");
                 SendKeys.Send("{ENTER}");
             }
+            catch (Win32Exception)
+            {
+                MessageBox.Show($"Нет требуемой версии {str_ex}", "Ошибка");
+            }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message, "Ошибка");
             }
+        }
+
+        private void lb_version_Click(object sender, EventArgs e)
+        {
+            tb_server.ReadOnly = false;
+            lb_version.Text = "";
+            tb_server.Text = "";
+        }
+
+        private void лицензированиеToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var FormLicense = new License();
+            FormLicense.Show();
+        }
+
+        private void настройкиToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var formsettings = new Settings();
+            TopMost = false;
+            formsettings.ShowDialog();
+            try
+            {
+
+                ReloadTreeView();
+                TopMost = true;
+            }
+            catch (Exception ex)
+            { MessageBox.Show(ex.Message, "Ошибка"); }
         }
     }
 }
