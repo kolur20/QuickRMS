@@ -260,10 +260,12 @@ namespace QuickRMS.Forms
             tb_server.Text = "";
         }
 
-        private void лицензированиеToolStripMenuItem_Click(object sender, EventArgs e)
+        private void запросыToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            var FormLicense = new License();
-            FormLicense.Show();
+            var FormLicense = new License(Servers);
+            TopMost = false;
+            FormLicense.ShowDialog();
+            TopMost = true;
         }
 
         private void настройкиToolStripMenuItem_Click(object sender, EventArgs e)

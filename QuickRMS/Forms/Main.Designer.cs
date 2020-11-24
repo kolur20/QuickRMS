@@ -35,15 +35,15 @@
             this.tb_server = new System.Windows.Forms.TextBox();
             this.pb_Search = new System.Windows.Forms.PictureBox();
             this.toolStrip_btn_check = new System.Windows.Forms.ToolStripSplitButton();
+            this.лицензированиеToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripVersion = new System.Windows.Forms.ToolStripStatusLabel();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.notifyIcon = new System.Windows.Forms.NotifyIcon(this.components);
             this.cms_icon = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.toolStripMenuItem_close = new System.Windows.Forms.ToolStripMenuItem();
             this.lb_version = new System.Windows.Forms.Label();
-            this.лицензированиеToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStrip_btn_Settings = new System.Windows.Forms.ToolStripSplitButton();
-            this.лицензированиеToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStrip_btn_Settings = new System.Windows.Forms.ToolStripDropDownButton();
+            this.запросыToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.настройкиToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.pb_Search)).BeginInit();
             this.statusStrip1.SuspendLayout();
@@ -112,6 +112,12 @@
             this.toolStrip_btn_check.Text = "toolStripSplitButton1";
             this.toolStrip_btn_check.ButtonClick += new System.EventHandler(this.toolStrip_btn_check_ButtonClick);
             // 
+            // лицензированиеToolStripMenuItem1
+            // 
+            this.лицензированиеToolStripMenuItem1.Name = "лицензированиеToolStripMenuItem1";
+            this.лицензированиеToolStripMenuItem1.Size = new System.Drawing.Size(173, 22);
+            this.лицензированиеToolStripMenuItem1.Text = "Лицензирование";
+            // 
             // toolStripVersion
             // 
             this.toolStripVersion.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
@@ -169,36 +175,30 @@
             this.lb_version.Click += new System.EventHandler(this.lb_version_Click);
             this.lb_version.DoubleClick += new System.EventHandler(this.lb_version_DoubleClick);
             // 
-            // лицензированиеToolStripMenuItem1
-            // 
-            this.лицензированиеToolStripMenuItem1.Name = "лицензированиеToolStripMenuItem1";
-            this.лицензированиеToolStripMenuItem1.Size = new System.Drawing.Size(180, 22);
-            this.лицензированиеToolStripMenuItem1.Text = "Лицензирование";
-            // 
             // toolStrip_btn_Settings
             // 
             this.toolStrip_btn_Settings.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
             this.toolStrip_btn_Settings.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.лицензированиеToolStripMenuItem,
+            this.запросыToolStripMenuItem,
             this.настройкиToolStripMenuItem});
             this.toolStrip_btn_Settings.Font = new System.Drawing.Font("Times New Roman", 10F);
             this.toolStrip_btn_Settings.Image = global::QuickRMS.Properties.Resources.options;
             this.toolStrip_btn_Settings.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.toolStrip_btn_Settings.Name = "toolStrip_btn_Settings";
-            this.toolStrip_btn_Settings.Size = new System.Drawing.Size(32, 20);
+            this.toolStrip_btn_Settings.Size = new System.Drawing.Size(29, 20);
             this.toolStrip_btn_Settings.Text = "toolStrip_btn_Settings";
             // 
-            // лицензированиеToolStripMenuItem
+            // запросыToolStripMenuItem
             // 
-            this.лицензированиеToolStripMenuItem.Name = "лицензированиеToolStripMenuItem";
-            this.лицензированиеToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.лицензированиеToolStripMenuItem.Text = "Лицензирование";
-            this.лицензированиеToolStripMenuItem.Click += new System.EventHandler(this.лицензированиеToolStripMenuItem_Click);
+            this.запросыToolStripMenuItem.Name = "запросыToolStripMenuItem";
+            this.запросыToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.запросыToolStripMenuItem.Text = "Запросы";
+            this.запросыToolStripMenuItem.Click += new System.EventHandler(this.запросыToolStripMenuItem_Click);
             // 
             // настройкиToolStripMenuItem
             // 
             this.настройкиToolStripMenuItem.Name = "настройкиToolStripMenuItem";
-            this.настройкиToolStripMenuItem.Size = new System.Drawing.Size(173, 22);
+            this.настройкиToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.настройкиToolStripMenuItem.Text = "Настройки";
             this.настройкиToolStripMenuItem.Click += new System.EventHandler(this.настройкиToolStripMenuItem_Click);
             // 
@@ -248,8 +248,8 @@
         private System.Windows.Forms.ContextMenuStrip cms_icon;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem_close;
         private System.Windows.Forms.ToolStripMenuItem лицензированиеToolStripMenuItem1;
-        private System.Windows.Forms.ToolStripSplitButton toolStrip_btn_Settings;
-        private System.Windows.Forms.ToolStripMenuItem лицензированиеToolStripMenuItem;
+        private System.Windows.Forms.ToolStripDropDownButton toolStrip_btn_Settings;
+        private System.Windows.Forms.ToolStripMenuItem запросыToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem настройкиToolStripMenuItem;
     }
 }

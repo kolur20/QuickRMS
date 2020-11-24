@@ -87,12 +87,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Classes\ConnectionManager.cs" />
-    <Compile Include="Classes\CsvManager.cs" />
+    <Compile Include="Managers\ConnectionManager.cs" />
+    <Compile Include="Managers\CsvManager.cs" />
     <Compile Include="Classes\QuickRun.cs" />
     <Compile Include="Classes\RMSico.cs" />
     <Compile Include="Classes\Server.cs" />
-    <Compile Include="Classes\SqlManager.cs" />
+    <Compile Include="Managers\SqlManager.cs" />
     <Compile Include="Forms\License.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -169,6 +169,9 @@
   <ItemGroup>
     <Content Include="clock_fast_icon_137750.ico" />
     <Content Include="info.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="LicenseText.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Resources\backclient.config.xml">

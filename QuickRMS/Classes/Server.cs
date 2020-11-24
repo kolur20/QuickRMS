@@ -8,7 +8,7 @@ using System.Windows.Forms;
 
 namespace QuickRMS.Classes
 {
-    class Server
+    public class Server
     {
         [Name("NAME")]
         public string Name { get; set; }

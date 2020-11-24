@@ -11,6 +11,7 @@ using System.Web;
 using System.Xml.Linq;
 using HtmlAgilityPack;
 using System.Xml;
+using System.Collections.ObjectModel;
 
 namespace QuickRMS.Classes
 {
@@ -38,7 +39,7 @@ namespace QuickRMS.Classes
 
         public void GetHtmlBrowser(string gethttp, string login, string password)
         {
-            WebRequest webRequest = WebRequest.Create(gethttp);
+            WebRequest webRequest = WebRequest.Create(gethttp+@"\service");
             webRequest.Headers.Add("Accept-Language", "ru-RU");
 
             webRequest.Timeout = 5000;
@@ -51,13 +52,73 @@ namespace QuickRMS.Classes
             response1.Close();
 
         }
-        public bool SkipLicence(string gethttp, string login, string password)
+        public bool SkipLicence(string gethttp, string login, string password, string moduleID)
         {
-            string script = HttpUtility.UrlEncode("import resto.licensing.LicenseService;LicenseService.releaseModuleConnections(200);");
+            
+            string script = HttpUtility.UrlEncode($"import resto.licensing.LicenseService;LicenseService.releaseModuleConnections({moduleID});");
             var req = string.Format($"{gethttp}/service/maintance/groovy.jsp?script={script}&action=start");
             SendRequest(req, login, password);
             return true;
         }
+
+        public IEnumerable<ReadOnlyCollection<string>> GetConnections(string gethttp, string login, string password)
+        {
+            var req = string.Format($"{gethttp}/service/monitoring/connections.jsp");
+            
+
+            HtmlDocument doc = new HtmlDocument();
+            doc.LoadHtml(SendRequest(req, login, password));
+            var c = doc.DocumentNode.SelectSingleNode(@"/html/body/table");
+            var tableElements = new List<ReadOnlyCollection<string>>();
+            if (c != null)
+            {
+                var nodes = c.SelectNodes("//td");
+                if (nodes == null)
+                    return null;
+                int t = 8, r = 0;
+                do
+                {
+                    
+                    var tableRow = new List<string>();
+                    tableRow.Add(nodes[r * t + 3].InnerText.Trim());
+                    tableRow.Add(nodes[r * t + 4].InnerText.Trim());
+                    tableRow.Add(nodes[r * t + 6].InnerText.Trim());
+                    r++;
+                    tableElements.Add(tableRow.AsReadOnly());
+                } while (r * t < nodes.Count);
+
+                
+            }
+
+            return tableElements.ToArray();
+
+        }
+
+        public string GetRMSInfo(string gethttp, string login, string password)
+        {
+            string script = HttpUtility.UrlEncode($"import resto.licensing.LicenseService;LicenseService.currentLicense.toString();");
+            var req = string.Format($"{gethttp}/service/maintance/groovy.jsp?script={script}&action=start");
+            var answer =  SendRequest(req, login, password);
+            bool info = false;
+            //StringBuilder stringBuilder = new StringBuilder();
+            string RMSInfo = "";
+            foreach (var str in answer.Split(':'))
+            {
+                if (str.Contains("Result"))
+                {
+                    info = true;
+                    continue;
+                }
+                if (info)
+                {
+                    if (str.Contains("Signed")) break;
+                    RMSInfo += str + ":";
+                }
+            }
+            return RMSInfo;
+        }
+
+
         public string SendRequest(string gethttp, string login = null, string password = null)
         {
             WebRequest webRequest = WebRequest.Create(gethttp);
@@ -107,7 +168,7 @@ namespace QuickRMS.Classes
         {
             if (!host.Contains("/resto"))
                 host += @"/resto";
-            var req = string.Format($"{host}/service/");
+            var req = string.Format($"{host}/get_server_info.jsp");
             int del = 0;
             ///отрезаем протокол если он присутствует
             if (req.Contains("://"))
