@@ -38,13 +38,13 @@
             this.лицензированиеToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripVersion = new System.Windows.Forms.ToolStripStatusLabel();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
+            this.toolStrip_btn_Settings = new System.Windows.Forms.ToolStripDropDownButton();
+            this.запросыToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.настройкиToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.notifyIcon = new System.Windows.Forms.NotifyIcon(this.components);
             this.cms_icon = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.toolStripMenuItem_close = new System.Windows.Forms.ToolStripMenuItem();
             this.lb_version = new System.Windows.Forms.Label();
-            this.toolStrip_btn_Settings = new System.Windows.Forms.ToolStripDropDownButton();
-            this.запросыToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.настройкиToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.pb_Search)).BeginInit();
             this.statusStrip1.SuspendLayout();
             this.cms_icon.SuspendLayout();
@@ -69,6 +69,7 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.tv_servers.Font = new System.Drawing.Font("Times New Roman", 12F);
+            this.tv_servers.FullRowSelect = true;
             this.tv_servers.Location = new System.Drawing.Point(5, 37);
             this.tv_servers.Name = "tv_servers";
             this.tv_servers.Size = new System.Drawing.Size(273, 83);
@@ -140,6 +141,33 @@
             this.statusStrip1.TabIndex = 0;
             this.statusStrip1.Text = "statusStrip1";
             // 
+            // toolStrip_btn_Settings
+            // 
+            this.toolStrip_btn_Settings.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.toolStrip_btn_Settings.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.запросыToolStripMenuItem,
+            this.настройкиToolStripMenuItem});
+            this.toolStrip_btn_Settings.Font = new System.Drawing.Font("Times New Roman", 10F);
+            this.toolStrip_btn_Settings.Image = global::QuickRMS.Properties.Resources.options;
+            this.toolStrip_btn_Settings.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.toolStrip_btn_Settings.Name = "toolStrip_btn_Settings";
+            this.toolStrip_btn_Settings.Size = new System.Drawing.Size(29, 20);
+            this.toolStrip_btn_Settings.Text = "toolStrip_btn_Settings";
+            // 
+            // запросыToolStripMenuItem
+            // 
+            this.запросыToolStripMenuItem.Name = "запросыToolStripMenuItem";
+            this.запросыToolStripMenuItem.Size = new System.Drawing.Size(138, 22);
+            this.запросыToolStripMenuItem.Text = "Запросы";
+            this.запросыToolStripMenuItem.Click += new System.EventHandler(this.запросыToolStripMenuItem_Click);
+            // 
+            // настройкиToolStripMenuItem
+            // 
+            this.настройкиToolStripMenuItem.Name = "настройкиToolStripMenuItem";
+            this.настройкиToolStripMenuItem.Size = new System.Drawing.Size(138, 22);
+            this.настройкиToolStripMenuItem.Text = "Настройки";
+            this.настройкиToolStripMenuItem.Click += new System.EventHandler(this.настройкиToolStripMenuItem_Click);
+            // 
             // notifyIcon
             // 
             this.notifyIcon.ContextMenuStrip = this.cms_icon;
@@ -174,33 +202,6 @@
             this.lb_version.Text = "label1";
             this.lb_version.Click += new System.EventHandler(this.lb_version_Click);
             this.lb_version.DoubleClick += new System.EventHandler(this.lb_version_DoubleClick);
-            // 
-            // toolStrip_btn_Settings
-            // 
-            this.toolStrip_btn_Settings.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.toolStrip_btn_Settings.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.запросыToolStripMenuItem,
-            this.настройкиToolStripMenuItem});
-            this.toolStrip_btn_Settings.Font = new System.Drawing.Font("Times New Roman", 10F);
-            this.toolStrip_btn_Settings.Image = global::QuickRMS.Properties.Resources.options;
-            this.toolStrip_btn_Settings.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.toolStrip_btn_Settings.Name = "toolStrip_btn_Settings";
-            this.toolStrip_btn_Settings.Size = new System.Drawing.Size(29, 20);
-            this.toolStrip_btn_Settings.Text = "toolStrip_btn_Settings";
-            // 
-            // запросыToolStripMenuItem
-            // 
-            this.запросыToolStripMenuItem.Name = "запросыToolStripMenuItem";
-            this.запросыToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.запросыToolStripMenuItem.Text = "Запросы";
-            this.запросыToolStripMenuItem.Click += new System.EventHandler(this.запросыToolStripMenuItem_Click);
-            // 
-            // настройкиToolStripMenuItem
-            // 
-            this.настройкиToolStripMenuItem.Name = "настройкиToolStripMenuItem";
-            this.настройкиToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.настройкиToolStripMenuItem.Text = "Настройки";
-            this.настройкиToolStripMenuItem.Click += new System.EventHandler(this.настройкиToolStripMenuItem_Click);
             // 
             // Main
             // 
