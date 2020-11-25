@@ -119,7 +119,7 @@ namespace QuickRMS.Classes
                 command.CommandText = @"SELECT * FROM Servers";
                 SQLiteDataReader Servers = command.ExecuteReader();
                 var listServer = new List<Server>();
-
+                
                 while (Servers.Read())
                 {
                     var server = new Server();
@@ -182,6 +182,7 @@ namespace QuickRMS.Classes
                 throw ex;
             }
         }
-        
+       
+         
     }
 }

@@ -30,7 +30,6 @@ namespace QuickRMS.Classes
 
         [Name("PASSWORD")]
         public string Password { get; set; }
-
-
+        
     }
 }

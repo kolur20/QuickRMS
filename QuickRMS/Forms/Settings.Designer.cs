@@ -78,11 +78,24 @@
             this.tb_rms = new System.Windows.Forms.TextBox();
             this.label7 = new System.Windows.Forms.Label();
             this.bw_animation = new System.ComponentModel.BackgroundWorker();
+            this.tabPage5 = new System.Windows.Forms.TabPage();
+            this.dg_DBValue = new System.Windows.Forms.DataGridView();
+            this.btn_ValueOpen = new System.Windows.Forms.Button();
+            this.btn_ValueSave = new System.Windows.Forms.Button();
+            this.name = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.connection = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.version = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.isChain = new System.Windows.Forms.DataGridViewCheckBoxColumn();
+            this.coConnection = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.login = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.password = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
             this.tabPage3.SuspendLayout();
             this.tabPage4.SuspendLayout();
+            this.tabPage5.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dg_DBValue)).BeginInit();
             this.SuspendLayout();
             // 
             // tabControl1
@@ -91,11 +104,12 @@
             this.tabControl1.Controls.Add(this.tabPage2);
             this.tabControl1.Controls.Add(this.tabPage3);
             this.tabControl1.Controls.Add(this.tabPage4);
+            this.tabControl1.Controls.Add(this.tabPage5);
             this.tabControl1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tabControl1.Location = new System.Drawing.Point(0, 0);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(724, 328);
+            this.tabControl1.Size = new System.Drawing.Size(742, 328);
             this.tabControl1.TabIndex = 3;
             // 
             // tabPage1
@@ -119,7 +133,7 @@
             this.tabPage1.Location = new System.Drawing.Point(4, 24);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(716, 300);
+            this.tabPage1.Size = new System.Drawing.Size(746, 300);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Новое подключение";
             // 
@@ -262,7 +276,7 @@
             this.tabPage2.Location = new System.Drawing.Point(4, 24);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(716, 300);
+            this.tabPage2.Size = new System.Drawing.Size(746, 300);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "Базы данных";
             // 
@@ -326,7 +340,7 @@
             this.tabPage3.Controls.Add(this.cb_removeAll);
             this.tabPage3.Location = new System.Drawing.Point(4, 24);
             this.tabPage3.Name = "tabPage3";
-            this.tabPage3.Size = new System.Drawing.Size(716, 300);
+            this.tabPage3.Size = new System.Drawing.Size(746, 300);
             this.tabPage3.TabIndex = 2;
             this.tabPage3.Text = "Импорт/Экспорт";
             // 
@@ -436,7 +450,7 @@
             this.tabPage4.Controls.Add(this.label7);
             this.tabPage4.Location = new System.Drawing.Point(4, 24);
             this.tabPage4.Name = "tabPage4";
-            this.tabPage4.Size = new System.Drawing.Size(716, 300);
+            this.tabPage4.Size = new System.Drawing.Size(746, 300);
             this.tabPage4.TabIndex = 3;
             this.tabPage4.Text = "Ярлыки";
             // 
@@ -577,14 +591,128 @@
             this.bw_animation.WorkerSupportsCancellation = true;
             this.bw_animation.DoWork += new System.ComponentModel.DoWorkEventHandler(this.bw_animation_DoWork);
             // 
+            // tabPage5
+            // 
+            this.tabPage5.Controls.Add(this.btn_ValueSave);
+            this.tabPage5.Controls.Add(this.btn_ValueOpen);
+            this.tabPage5.Controls.Add(this.dg_DBValue);
+            this.tabPage5.Location = new System.Drawing.Point(4, 24);
+            this.tabPage5.Name = "tabPage5";
+            this.tabPage5.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage5.Size = new System.Drawing.Size(734, 300);
+            this.tabPage5.TabIndex = 4;
+            this.tabPage5.Text = "Данные";
+            this.tabPage5.UseVisualStyleBackColor = true;
+            // 
+            // dg_DBValue
+            // 
+            this.dg_DBValue.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.AllCells;
+            this.dg_DBValue.BackgroundColor = System.Drawing.SystemColors.ControlLightLight;
+            this.dg_DBValue.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.dg_DBValue.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.name,
+            this.connection,
+            this.version,
+            this.isChain,
+            this.coConnection,
+            this.login,
+            this.password});
+            this.dg_DBValue.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.dg_DBValue.GridColor = System.Drawing.SystemColors.ControlLightLight;
+            this.dg_DBValue.Location = new System.Drawing.Point(3, 37);
+            this.dg_DBValue.Name = "dg_DBValue";
+            this.dg_DBValue.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.dg_DBValue.Size = new System.Drawing.Size(728, 260);
+            this.dg_DBValue.TabIndex = 0;
+            // 
+            // btn_ValueOpen
+            // 
+            this.btn_ValueOpen.Location = new System.Drawing.Point(440, 6);
+            this.btn_ValueOpen.Name = "btn_ValueOpen";
+            this.btn_ValueOpen.Size = new System.Drawing.Size(131, 28);
+            this.btn_ValueOpen.TabIndex = 1;
+            this.btn_ValueOpen.Text = "Получить данные";
+            this.btn_ValueOpen.UseVisualStyleBackColor = true;
+            this.btn_ValueOpen.Click += new System.EventHandler(this.btn_ValueOpen_Click);
+            // 
+            // btn_ValueSave
+            // 
+            this.btn_ValueSave.Location = new System.Drawing.Point(577, 6);
+            this.btn_ValueSave.Name = "btn_ValueSave";
+            this.btn_ValueSave.Size = new System.Drawing.Size(131, 28);
+            this.btn_ValueSave.TabIndex = 2;
+            this.btn_ValueSave.Text = "Сохранить данные";
+            this.btn_ValueSave.UseVisualStyleBackColor = true;
+            this.btn_ValueSave.Click += new System.EventHandler(this.btn_ValueSave_Click);
+            // 
+            // name
+            // 
+            this.name.Frozen = true;
+            this.name.HeaderText = "name";
+            this.name.Name = "name";
+            this.name.Width = 140;
+            // 
+            // connection
+            // 
+            this.connection.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+            this.connection.Frozen = true;
+            this.connection.HeaderText = "connection";
+            this.connection.Name = "connection";
+            this.connection.Width = 140;
+            // 
+            // version
+            // 
+            this.version.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
+            this.version.Frozen = true;
+            this.version.HeaderText = "version";
+            this.version.Name = "version";
+            this.version.Width = 74;
+            // 
+            // isChain
+            // 
+            this.isChain.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.ColumnHeader;
+            this.isChain.Frozen = true;
+            this.isChain.HeaderText = "isChain";
+            this.isChain.Name = "isChain";
+            this.isChain.Width = 55;
+            // 
+            // coConnection
+            // 
+            this.coConnection.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+            this.coConnection.Frozen = true;
+            this.coConnection.HeaderText = "coConnection";
+            this.coConnection.Name = "coConnection";
+            this.coConnection.Resizable = System.Windows.Forms.DataGridViewTriState.True;
+            this.coConnection.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
+            this.coConnection.Width = 140;
+            // 
+            // login
+            // 
+            this.login.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
+            this.login.Frozen = true;
+            this.login.HeaderText = "login";
+            this.login.Name = "login";
+            this.login.Resizable = System.Windows.Forms.DataGridViewTriState.True;
+            this.login.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
+            this.login.Width = 41;
+            // 
+            // password
+            // 
+            this.password.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
+            this.password.Frozen = true;
+            this.password.HeaderText = "password";
+            this.password.Name = "password";
+            this.password.Resizable = System.Windows.Forms.DataGridViewTriState.True;
+            this.password.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
+            this.password.Width = 69;
+            // 
             // Settings
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(724, 328);
+            this.ClientSize = new System.Drawing.Size(742, 328);
             this.Controls.Add(this.tabControl1);
             this.Font = new System.Drawing.Font("Times New Roman", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "Settings";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
@@ -598,6 +726,8 @@
             this.tabPage3.PerformLayout();
             this.tabPage4.ResumeLayout(false);
             this.tabPage4.PerformLayout();
+            this.tabPage5.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.dg_DBValue)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -653,5 +783,16 @@
         private System.Windows.Forms.Button btn_OpenDB;
         private System.Windows.Forms.TextBox tb_timer;
         private System.Windows.Forms.Label label11;
+        private System.Windows.Forms.TabPage tabPage5;
+        private System.Windows.Forms.Button btn_ValueSave;
+        private System.Windows.Forms.Button btn_ValueOpen;
+        private System.Windows.Forms.DataGridView dg_DBValue;
+        private System.Windows.Forms.DataGridViewTextBoxColumn name;
+        private System.Windows.Forms.DataGridViewTextBoxColumn connection;
+        private System.Windows.Forms.DataGridViewTextBoxColumn version;
+        private System.Windows.Forms.DataGridViewCheckBoxColumn isChain;
+        private System.Windows.Forms.DataGridViewTextBoxColumn coConnection;
+        private System.Windows.Forms.DataGridViewTextBoxColumn login;
+        private System.Windows.Forms.DataGridViewTextBoxColumn password;
     }
 }

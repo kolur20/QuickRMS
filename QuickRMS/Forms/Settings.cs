@@ -612,6 +612,54 @@ namespace QuickRMS.Forms
                 e.Handled = true;
             }
         }
+
+        private void btn_ValueOpen_Click(object sender, EventArgs e)
+        {
+            var servers = SqlManager.GetInstance().GetData();
+            dg_DBValue.Rows.Clear();
+            foreach (var server in servers)
+            {
+                dg_DBValue.Rows.Add(
+                    server.Name,
+                    server.Connection,
+                    server.Version,
+                    server.isChain,
+                    server.coConnection,
+                    server.Login,
+                    server.Password);
+            }
+        }
+
+        private void btn_ValueSave_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                var servers = new List<Server>();
+                //servers.AddRange(dg_D)
+                foreach (DataGridViewRow row in dg_DBValue.Rows)
+                {
+                    //var Login = row.Cells["isChain"].Value ?? false;
+                    servers.Add(new Server()
+                    {
+                        Name = row.Cells["name"].Value?.ToString() ?? "",
+                        Connection = row.Cells["connection"].Value?.ToString() ?? "",
+                        coConnection = row.Cells["coConnection"].Value?.ToString() ?? "",
+                        isChain = (bool)(row.Cells["isChain"].Value ?? false),
+                        Login = row.Cells["login"].Value?.ToString() ?? "",
+                        Password = row.Cells["password"].Value?.ToString() ?? "",
+                        Version = row.Cells["version"].Value?.ToString() ?? ""
+                    });
+                }
+                servers.Remove(servers.Last());
+                SqlManager.GetInstance().RemoveAll();
+                SqlManager.GetInstance().Insert(servers);
+                MessageBox.Show("База данных изменена", "Успешно");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Ошибка");
+            }
+        }
     }
 
 }

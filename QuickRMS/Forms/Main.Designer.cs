@@ -35,7 +35,6 @@
             this.tb_server = new System.Windows.Forms.TextBox();
             this.pb_Search = new System.Windows.Forms.PictureBox();
             this.toolStrip_btn_check = new System.Windows.Forms.ToolStripSplitButton();
-            this.лицензированиеToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripVersion = new System.Windows.Forms.ToolStripStatusLabel();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.toolStrip_btn_Settings = new System.Windows.Forms.ToolStripDropDownButton();
@@ -104,20 +103,12 @@
             // toolStrip_btn_check
             // 
             this.toolStrip_btn_check.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.toolStrip_btn_check.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.лицензированиеToolStripMenuItem1});
             this.toolStrip_btn_check.Image = global::QuickRMS.Properties.Resources.сheck;
             this.toolStrip_btn_check.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.toolStrip_btn_check.Name = "toolStrip_btn_check";
             this.toolStrip_btn_check.Size = new System.Drawing.Size(32, 20);
             this.toolStrip_btn_check.Text = "toolStripSplitButton1";
             this.toolStrip_btn_check.ButtonClick += new System.EventHandler(this.toolStrip_btn_check_ButtonClick);
-            // 
-            // лицензированиеToolStripMenuItem1
-            // 
-            this.лицензированиеToolStripMenuItem1.Name = "лицензированиеToolStripMenuItem1";
-            this.лицензированиеToolStripMenuItem1.Size = new System.Drawing.Size(173, 22);
-            this.лицензированиеToolStripMenuItem1.Text = "Лицензирование";
             // 
             // toolStripVersion
             // 
@@ -248,7 +239,6 @@
         private System.Windows.Forms.Label lb_version;
         private System.Windows.Forms.ContextMenuStrip cms_icon;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem_close;
-        private System.Windows.Forms.ToolStripMenuItem лицензированиеToolStripMenuItem1;
         private System.Windows.Forms.ToolStripDropDownButton toolStrip_btn_Settings;
         private System.Windows.Forms.ToolStripMenuItem запросыToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem настройкиToolStripMenuItem;
