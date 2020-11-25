@@ -37,7 +37,7 @@
             this.tb_License = new System.Windows.Forms.TextBox();
             this.tv_License = new System.Windows.Forms.TreeView();
             this.btn_OpenWeb = new System.Windows.Forms.Button();
-            this.btn_RestertRabbit = new System.Windows.Forms.Button();
+            this.btn_RestartRabbit = new System.Windows.Forms.Button();
             this.dgv_connections = new System.Windows.Forms.DataGridView();
             this.Login = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ID = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -45,6 +45,7 @@
             this.tb_serverInfo = new System.Windows.Forms.TextBox();
             this.tb_Connection = new System.Windows.Forms.TextBox();
             this.btn_connection = new System.Windows.Forms.Button();
+            this.btn_RefreshLicence = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.pb_Server)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pb_License)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.dgv_connections)).BeginInit();
@@ -136,7 +137,7 @@
             // btn_OpenWeb
             // 
             this.btn_OpenWeb.Enabled = false;
-            this.btn_OpenWeb.Location = new System.Drawing.Point(226, 232);
+            this.btn_OpenWeb.Location = new System.Drawing.Point(375, 230);
             this.btn_OpenWeb.Name = "btn_OpenWeb";
             this.btn_OpenWeb.Size = new System.Drawing.Size(130, 46);
             this.btn_OpenWeb.TabIndex = 9;
@@ -144,15 +145,15 @@
             this.btn_OpenWeb.UseVisualStyleBackColor = true;
             this.btn_OpenWeb.Click += new System.EventHandler(this.btn_OpenWeb_Click);
             // 
-            // btn_RestertRabbit
+            // btn_RestartRabbit
             // 
-            this.btn_RestertRabbit.Enabled = false;
-            this.btn_RestertRabbit.Location = new System.Drawing.Point(375, 178);
-            this.btn_RestertRabbit.Name = "btn_RestertRabbit";
-            this.btn_RestertRabbit.Size = new System.Drawing.Size(130, 46);
-            this.btn_RestertRabbit.TabIndex = 10;
-            this.btn_RestertRabbit.Text = "Перезапуск RabbitMq";
-            this.btn_RestertRabbit.UseVisualStyleBackColor = true;
+            this.btn_RestartRabbit.Location = new System.Drawing.Point(375, 178);
+            this.btn_RestartRabbit.Name = "btn_RestartRabbit";
+            this.btn_RestartRabbit.Size = new System.Drawing.Size(130, 46);
+            this.btn_RestartRabbit.TabIndex = 10;
+            this.btn_RestartRabbit.Text = "Открыть iikoBizConnection";
+            this.btn_RestartRabbit.UseVisualStyleBackColor = true;
+            this.btn_RestartRabbit.Click += new System.EventHandler(this.btn_RestartRabbit_Click);
             // 
             // dgv_connections
             // 
@@ -223,16 +224,27 @@
             this.btn_connection.UseVisualStyleBackColor = true;
             this.btn_connection.Click += new System.EventHandler(this.btn_connection_Click);
             // 
+            // btn_RefreshLicence
+            // 
+            this.btn_RefreshLicence.Location = new System.Drawing.Point(226, 232);
+            this.btn_RefreshLicence.Name = "btn_RefreshLicence";
+            this.btn_RefreshLicence.Size = new System.Drawing.Size(130, 46);
+            this.btn_RefreshLicence.TabIndex = 16;
+            this.btn_RefreshLicence.Text = "Обновить лицензии";
+            this.btn_RefreshLicence.UseVisualStyleBackColor = true;
+            this.btn_RefreshLicence.Click += new System.EventHandler(this.btn_RefreshLicence_Click);
+            // 
             // License
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(825, 327);
+            this.Controls.Add(this.btn_RefreshLicence);
             this.Controls.Add(this.btn_connection);
             this.Controls.Add(this.tb_Connection);
             this.Controls.Add(this.tb_serverInfo);
             this.Controls.Add(this.dgv_connections);
-            this.Controls.Add(this.btn_RestertRabbit);
+            this.Controls.Add(this.btn_RestartRabbit);
             this.Controls.Add(this.btn_OpenWeb);
             this.Controls.Add(this.tv_License);
             this.Controls.Add(this.tb_License);
@@ -265,7 +277,7 @@
         private System.Windows.Forms.TextBox tb_License;
         private System.Windows.Forms.TreeView tv_License;
         private System.Windows.Forms.Button btn_OpenWeb;
-        private System.Windows.Forms.Button btn_RestertRabbit;
+        private System.Windows.Forms.Button btn_RestartRabbit;
         private System.Windows.Forms.DataGridView dgv_connections;
         private System.Windows.Forms.TextBox tb_serverInfo;
         private System.Windows.Forms.TextBox tb_Connection;
@@ -273,5 +285,6 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn Login;
         private System.Windows.Forms.DataGridViewTextBoxColumn ID;
         private System.Windows.Forms.DataGridViewTextBoxColumn ModuleName;
+        private System.Windows.Forms.Button btn_RefreshLicence;
     }
 }

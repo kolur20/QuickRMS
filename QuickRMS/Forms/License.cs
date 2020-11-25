@@ -226,7 +226,7 @@ namespace QuickRMS.Forms
                 if (tabl != null)
                     foreach (var row in tabl)
                         dgv_connections.Rows.Add(row.ToArray());
-
+                tb_serverInfo.Text = string.Empty();
                 var info = connection.GetRMSInfo(server.Connection, server.Login, server.Password);
                 tb_serverInfo.Text = info;
                 //MessageBox.Show($"{tv_License.SelectedNode.Text} успешно сброшена", "Успешно");
@@ -268,6 +268,69 @@ namespace QuickRMS.Forms
                         $"Используя логин {server.Login} и пароль {server.Password}","Ошибка");
             }
             
+        }
+
+        private void btn_RestartRabbit_Click(object sender, EventArgs e)
+        {
+            var connection = new ConnectionManager();
+            Server server = new Server();
+            try
+            {
+
+                tb_Connection.Text = connection.CheckConnectionSafe(tb_Connection.Text);
+
+                if (Servers.Where(data => data.Connection == tb_Connection.Text).Count() > 0)
+                {
+                    server = Servers.Where(data => data.Connection == tb_Connection.Text).First();
+                }
+                else
+                {
+                    server = new Server()
+                    {
+                        Connection = tb_Connection.Text,
+                        Login = "admin",
+                        Password = "restoresto"
+                    };
+                }
+                connection.GetHtmlBrowserBizTestConnection(server.Connection, server.Login, server.Password);
+            }
+            catch (Exception)
+            {
+                MessageBox.Show($"Не удалось попасть в томкет по адресу:\r\n{tb_Connection.Text}\r\n" +
+                        $"Используя логин {server.Login} и пароль {server.Password}", "Ошибка");
+            }
+        }
+
+        private void btn_RefreshLicence_Click(object sender, EventArgs e)
+        {
+            var connection = new ConnectionManager();
+            Server server = new Server();
+            try
+            {
+
+                tb_Connection.Text = connection.CheckConnectionSafe(tb_Connection.Text);
+
+                if (Servers.Where(data => data.Connection == tb_Connection.Text).Count() > 0)
+                {
+                    server = Servers.Where(data => data.Connection == tb_Connection.Text).First();
+                }
+                else
+                {
+                    server = new Server()
+                    {
+                        Connection = tb_Connection.Text,
+                        Login = "admin",
+                        Password = "restoresto"
+                    };
+                }
+                connection.RefreshLicence(server.Connection, server.Login, server.Password);
+                MessageBox.Show($"Лицензии \r\n{server.Connection} \r\nуспешно обновлены", "Успешно");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Не удалось попасть в томкет по адресу:\r\n{tb_Connection.Text}\r\n" +
+                        $"Используя логин {server.Login} и пароль {server.Password}\r\n{ex.Message}", "Ошибка");
+            }
         }
     }
 }

@@ -35,11 +35,24 @@ namespace QuickRMS.Classes
         {
 
         }
+        public void GetHtmlBrowserBizTestConnection(string gethttp, string login, string password)
+        {
+            WebRequest webRequest = WebRequest.Create(gethttp + @"/service/monitoring/iikoBizTestConnection.jsp");
+            webRequest.Headers.Add("Accept-Language", "ru-RU");
 
+            webRequest.Timeout = 5000;
+            if (login != null && password != null)
+                webRequest.Headers.Add("Authorization", "Basic " + Convert.ToBase64String(Encoding.ASCII.GetBytes(login + ":" + password)));
+            WebResponse response1;
+            response1 = webRequest.GetResponse();
+            System.Diagnostics.Process.Start(response1.ResponseUri.AbsoluteUri);
+
+            response1.Close();
+        }
 
         public void GetHtmlBrowser(string gethttp, string login, string password)
         {
-            WebRequest webRequest = WebRequest.Create(gethttp+@"\service");
+            WebRequest webRequest = WebRequest.Create(gethttp+@"/service");
             webRequest.Headers.Add("Accept-Language", "ru-RU");
 
             webRequest.Timeout = 5000;
@@ -56,6 +69,14 @@ namespace QuickRMS.Classes
         {
             
             string script = HttpUtility.UrlEncode($"import resto.licensing.LicenseService;LicenseService.releaseModuleConnections({moduleID});");
+            var req = string.Format($"{gethttp}/service/maintance/groovy.jsp?script={script}&action=start");
+            SendRequest(req, login, password);
+            return true;
+        }
+
+        public bool RefreshLicence(string gethttp, string login, string password)
+        {
+            string script = HttpUtility.UrlEncode($"import resto.licensing.LicenseService;LicenseService.checkLicenseOnline(true);");
             var req = string.Format($"{gethttp}/service/maintance/groovy.jsp?script={script}&action=start");
             SendRequest(req, login, password);
             return true;
