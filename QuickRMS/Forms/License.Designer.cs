@@ -136,7 +136,6 @@
             // 
             // btn_OpenWeb
             // 
-            this.btn_OpenWeb.Enabled = false;
             this.btn_OpenWeb.Location = new System.Drawing.Point(375, 230);
             this.btn_OpenWeb.Name = "btn_OpenWeb";
             this.btn_OpenWeb.Size = new System.Drawing.Size(130, 46);

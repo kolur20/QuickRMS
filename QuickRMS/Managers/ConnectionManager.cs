@@ -49,7 +49,7 @@ namespace QuickRMS.Classes
 
             response1.Close();
         }
-
+        
         public void GetHtmlBrowser(string gethttp, string login, string password)
         {
             WebRequest webRequest = WebRequest.Create(gethttp+@"/service");

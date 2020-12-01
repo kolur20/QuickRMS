@@ -226,7 +226,7 @@ namespace QuickRMS.Forms
                 if (tabl != null)
                     foreach (var row in tabl)
                         dgv_connections.Rows.Add(row.ToArray());
-                tb_serverInfo.Text = string.Empty();
+                tb_serverInfo.Text = string.Empty;
                 var info = connection.GetRMSInfo(server.Connection, server.Login, server.Password);
                 tb_serverInfo.Text = info;
                 //MessageBox.Show($"{tv_License.SelectedNode.Text} успешно сброшена", "Успешно");
